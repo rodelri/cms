@@ -107,6 +107,17 @@
         background: rgba(0,0,0,0.42);
       }
 
+      }
+
+      .media-foreground {
+        position: absolute;
+        inset: 2.5vw 2.5vw;
+        border-radius: 1.2vw;
+        overflow: hidden;
+        box-shadow: 0 14px 36px rgba(0,0,0,0.35);
+        background: rgba(0,0,0,0.42);
+      }
+
       .media-foreground img,
       .media-foreground video {
         width: 100%;
@@ -210,11 +221,46 @@
         clearTimers();
         updateStatus('Solicitando playlist');
 
-        try {
-          const url = buildPlaylistUrl();
-          const response = await fetch(url, { cache: 'no-store' });
-          const data = await response.json();
+        const urls = buildPlaylistUrlCandidates();
+        let lastError = null;
 
+        for (let i = 0; i < urls.length; i++) {
+          const url = urls[i];
+          try {
+            const response = await fetch(url, { cache: 'no-store' });
+            if (!response.ok) {
+              throw new Error('HTTP ' + response.status + ' en ' + url);
+            }
+
+            const text = await response.text();
+            let data = null;
+            try {
+              data = JSON.parse(text);
+            } catch (parseErr) {
+              throw new Error('Respuesta no JSON en ' + url + '. ¿La Web App está desplegada con acceso correcto?');
+            }
+
+            if (!data.ok) {
+              renderMessage('No se pudo cargar la playlist', [data.error || 'Error desconocido'], 'error');
+              scheduleRefresh(30);
+              return;
+            }
+
+            playlist = Array.isArray(data.playlist) ? data.playlist : [];
+            currentIndex = 0;
+            currentScreenInfo = data.screen || null;
+            lastRefreshSeg = Number(data.screen && data.screen.refreshSeg) || 60;
+            applyScreenTheme(data.screen || {});
+
+            if (!playlist.length) {
+              renderMessage('Sin contenidos asignados', [
+                'La pantalla está activa, pero no tiene slides disponibles ahora mismo.'
+              ], 'placeholder');
+              scheduleRefresh(lastRefreshSeg);
+              return;
+            }
+
+            showSlide(currentIndex);
           if (!data.ok) {
             renderMessage('No se pudo cargar la playlist', [data.error || 'Error desconocido'], 'error');
             scheduleRefresh(30);
@@ -233,14 +279,17 @@
             ], 'placeholder');
             scheduleRefresh(lastRefreshSeg);
             return;
+          } catch (err) {
+            lastError = err;
           }
-
-          showSlide(currentIndex);
-          scheduleRefresh(lastRefreshSeg);
-        } catch (err) {
-          renderMessage('Error de red o parsing', [String(err && err.message || err)], 'error');
-          scheduleRefresh(30);
         }
+
+        renderMessage('Error de red o parsing', [
+          String(lastError && lastError.message || lastError),
+          'URL probadas: ' + urls.join(' | '),
+          'Revisa despliegue Web App y permisos de acceso.'
+        ], 'error');
+        scheduleRefresh(30);
       }
 
       function applyScreenTheme(screen) {
@@ -249,6 +298,21 @@
         document.documentElement.style.setProperty('--bg-soft', mixWithBlack(bg, 0.25));
       }
 
+      function buildPlaylistUrlCandidates() {
+        const unique = {};
+        const seeds = [BOOT.apiBase, window.location.href];
+
+        seeds.forEach(function(seed) {
+          try {
+            const url = new URL(seed || window.location.href, window.location.href);
+            url.searchParams.set('api', 'playlist');
+            url.searchParams.set('screen', BOOT.screen);
+            url.searchParams.set('token', BOOT.token);
+            unique[url.toString()] = true;
+          } catch (err) {}
+        });
+
+        return Object.keys(unique);
       function buildPlaylistUrl() {
         const url = new URL(BOOT.apiBase, window.location.href);
         url.searchParams.set('api', 'playlist');

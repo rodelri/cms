@@ -107,6 +107,57 @@ Notas de permisos:
 6. Abre `?view=admin` para administrar datos.
 7. Abre una pantalla, por ejemplo:
 
+### Obligatoria/recomendada
+- `CARTELERIA_SPREADSHEET_ID` (recomendada): ID de la hoja de cálculo con datos del CMS.
+
+### Nueva para Drive (opcional)
+- `CARTELERIA_DRIVE_FOLDER_ID`: carpeta de Drive para listar recursos desde el panel admin.
+
+## Criterio técnico
+
+Se mantiene intencionalmente simple para Apps Script:
+- sin pipeline frontend,
+- sin migraciones de stack,
+- despliegue directo y mantenible para un centro educativo.
+
+
+## Problema común: “Error de red o parsing / Failed to fetch”
+
+Si aparece en `screen.html`:
+
+1. Verifica que estás usando la **URL desplegada** de Web App (no la vista previa del editor).
+2. Revisa en Deploy que el acceso permita al dispositivo de pantalla consultar la app.
+3. Comprueba `screen` y `token` válidos.
+
+La pantalla intenta consultar la API por la URL configurada y también por la URL actual como fallback.
+
+Si no se define la carpeta Drive:
+- el CMS sigue funcionando,
+- simplemente no se listan recursos en el bloque “Recursos de Google Drive”.
+
+## Gestión de recursos Drive
+
+El sistema mantiene compatibilidad con el modelo actual (`FILE_ID` o `URL`):
+
+1. Puedes guardar `URL` directa del recurso.
+2. Puedes guardar `FILE_ID` de Drive.
+3. Si pegas una URL de Drive en `FILE_ID`, backend intenta extraer y normalizar el ID.
+4. Para `IMAGE`/`VIDEO`, si `URL` está vacía y hay `FILE_ID`, se genera URL automáticamente.
+
+Notas de permisos:
+- Los dispositivos que reproducen cartelería deben tener acceso de lectura al archivo.
+- Si un archivo no es accesible, la pantalla mostrará error en ese slide y avanzará al siguiente.
+
+## Puesta en marcha mínima
+
+1. Sincroniza con tu proyecto de Apps Script.
+2. Configura `CARTELERIA_SPREADSHEET_ID`.
+3. (Opcional) Configura `CARTELERIA_DRIVE_FOLDER_ID`.
+4. Ejecuta `setupCarteleria()` una vez.
+5. Despliega la web app.
+6. Abre `?view=admin` para administrar datos.
+7. Abre una pantalla, por ejemplo:
+
 ```text
 ...?screen=ENTRADA_PRINCIPAL&token=demo-token-001
 ```
