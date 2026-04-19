@@ -18,6 +18,7 @@ La idea no es construir un prototipo para migrarlo después, sino un proyecto qu
 ### En raíz
 - `Code.gs`
 - `screen.html`
+- `admin.html`
 - `appsscript.json`
 - `AGENTS.md`
 - `README.md`
@@ -39,10 +40,21 @@ Una pantalla abre la web app con una URL del estilo:
 
 `...?screen=ENTRADA_PRINCIPAL&token=demo-token-001`
 
-Si no se pide API, `doGet(e)` sirve `screen.html`.
+Si no se pide API ni vista admin, `doGet(e)` sirve `screen.html`.
 
-### 2. Carga de playlist
-El frontend hace una petición a:
+### 2. Cliente admin
+El panel inicial de administración se abre con:
+
+`...?view=admin`
+
+O alternativamente:
+
+`...?admin=1`
+
+`doGet(e)` sirve `admin.html`, que usa `google.script.run` para cargar el resumen y los listados de las hojas base.
+
+### 3. Carga de playlist
+El frontend público hace una petición a:
 
 `?api=playlist&screen=...&token=...`
 
@@ -52,7 +64,7 @@ El backend valida:
 - que esté activa
 - que el token coincida
 
-### 3. Construcción de playlist
+### 4. Construcción de playlist
 `buildPlaylist_()`:
 
 - lee `ASIGNACIONES`
@@ -63,7 +75,7 @@ El backend valida:
 - cruza con `CONTENIDOS`
 - devuelve una lista normalizada de slides
 
-### 4. Reproducción
+### 5. Reproducción
 `screen.html` rota automáticamente entre slides de tipo:
 
 - `HTML`
@@ -71,6 +83,17 @@ El backend valida:
 - `VIDEO`
 
 Y refresca periódicamente la playlist para detectar cambios en Sheets.
+
+### 6. Resumen admin
+`getAdminDashboardData()` devuelve:
+
+- conteos globales
+- listado de `PANTALLAS`
+- listado de `CONTENIDOS`
+- listado de `ASIGNACIONES`
+- identificador y URL de la hoja configurada
+
+Esto permite tener una primera base de panel sin meter aún CRUD ni formularios.
 
 ---
 
@@ -138,11 +161,17 @@ Se evita introducir herramientas modernas de frontend porque empeoran la sincron
 ### Runtime en raíz
 Se mantienen los archivos principales en la raíz para facilitar el flujo con GitHub Assistant y herramientas equivalentes.
 
+### Primer admin sin framework
+`admin.html` usa HTML, CSS y JS nativos con `google.script.run`. Esto permite evolucionar el panel sin introducir pipelines de build.
+
 ### Google Sheets como base ligera
 Es suficiente para un CMS inicial de cartelería con pocas tablas y edición por personal no técnico.
 
 ### Drive como capa de recursos
 Drive simplifica la gestión de imágenes y vídeos internos del centro sin desplegar infraestructura adicional.
+
+### .claspignore controlado
+`.claspignore` deja pasar solo los archivos runtime que deben sincronizarse con Apps Script. Al añadir `admin.html`, se ha incluido explícitamente para que no se pierda en la sincronización.
 
 ---
 
@@ -150,10 +179,10 @@ Drive simplifica la gestión de imágenes y vídeos internos del centro sin desp
 
 Siguientes pasos razonables:
 
-1. panel de administración básico dentro de Apps Script
-2. altas y edición de pantallas
-3. altas y edición de contenidos
-4. gestión de asignaciones desde interfaz
+1. CRUD de pantallas dentro de `admin.html`
+2. CRUD de contenidos
+3. CRUD de asignaciones
+4. filtros y búsqueda rápida en tablas
 5. grupos de pantallas
 6. caché ligera para lecturas frecuentes
 7. control de acceso por usuarios autorizados
