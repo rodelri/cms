@@ -19,13 +19,14 @@ CMS de cartelería digital para un colegio con:
 - backend en Google Apps Script
 - Google Sheets como base de datos ligera
 - Google Drive para imágenes, vídeos y recursos
-- posibilidad futura de panel de administración dentro del propio Apps Script
+- panel de administración dentro del propio Apps Script
 
 ## Archivos clave del proyecto Apps Script
 
 ### Runtime
 - `Code.gs` → backend principal
 - `screen.html` → frontend reproductor de pantalla
+- `admin.html` → primer panel de administración
 - `appsscript.json` → manifiesto del proyecto
 
 ### Gobernanza del repo
@@ -42,6 +43,7 @@ CMS de cartelería digital para un colegio con:
 Este repo ya incluye:
 
 - `doGet(e)` que sirve la pantalla HTML por defecto
+- vista admin con `?view=admin` o `?admin=1`
 - endpoint JSON `?api=playlist&screen=...&token=...`
 - lectura base de configuración desde Google Sheets
 - construcción de playlist por pantalla
@@ -50,6 +52,7 @@ Este repo ya incluye:
 - rotación automática en `screen.html`
 - refresco periódico de playlist
 - función `setupCarteleria()` para crear hojas base y datos demo
+- función `getAdminDashboardData()` para cargar resumen y tablas del panel
 
 ## Modelo inicial previsto en Google Sheets
 
@@ -98,6 +101,12 @@ Este repo ya incluye:
 ...?api=playlist&screen=ENTRADA_PRINCIPAL&token=demo-token-001
 ```
 
+7. Abre el panel inicial de administración:
+
+```text
+...?view=admin
+```
+
 ## Criterio técnico del repo
 
 Este proyecto debe seguir siendo:
@@ -110,4 +119,4 @@ Este proyecto debe seguir siendo:
 
 ## Próximo paso natural
 
-Desarrollar un panel de administración mínimo dentro del propio Apps Script sin introducir complejidad innecesaria.
+Añadir CRUD simple sobre pantallas, contenidos y asignaciones dentro del panel admin.
