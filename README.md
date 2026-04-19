@@ -1,23 +1,57 @@
 # CMS de cartelería digital para colegio
 
-Este repositorio es el **origen de verdad en GitHub** del proyecto y está pensado para sincronizarse **directamente con Google Apps Script**, sin migración posterior.
+Este repositorio está preparado para ser el **origen de verdad en GitHub** y sincronizarse **directamente con Google Apps Script**.
 
 ## Enfoque
 
-- Apps Script puro desde el principio.
-- Archivos runtime en la raíz del repositorio.
-- Google Sheets como base de datos ligera.
-- Google Drive como origen de recursos.
-- Preparado para trabajar con GitHub Assistant y Codex.
+- No se plantea una migración posterior.
+- El código Apps Script vive desde el principio en este repositorio.
+- La sincronización con Apps Script se hará desde GitHub mediante tu flujo habitual.
+- Los archivos del proyecto Apps Script están en la **raíz del repositorio** para maximizar compatibilidad con herramientas de sincronización.
 
-## Archivos principales
+## Objetivo funcional
 
+CMS de cartelería digital para un colegio con:
+
+- varias pantallas en distintas entradas o zonas
+- contenido distinto por pantalla o por grupos de pantallas
+- reproducción automática a pantalla completa
+- backend en Google Apps Script
+- Google Sheets como base de datos ligera
+- Google Drive para imágenes, vídeos y recursos
+- posibilidad futura de panel de administración dentro del propio Apps Script
+
+## Archivos clave del proyecto Apps Script
+
+### Runtime
 - `Code.gs` → backend principal
-- `screen.html` → reproductor de pantalla completa
-- `appsscript.json` → manifiesto Apps Script
-- `AGENTS.md` → reglas para Codex
+- `screen.html` → frontend reproductor de pantalla
+- `appsscript.json` → manifiesto del proyecto
 
-## Hojas previstas
+### Gobernanza del repo
+- `AGENTS.md` → instrucciones para Codex
+- `.clasp.json.example` → ejemplo si quieres usar `clasp` como respaldo
+- `.claspignore` → exclusiones para sincronización por `clasp`
+
+### Documentación
+- `docs/arquitectura.md` → decisiones técnicas
+- `docs/codex-prompts.md` → prompts listos para pedirle trabajo a Codex
+
+## Esqueleto funcional incluido
+
+Este repo ya incluye:
+
+- `doGet(e)` que sirve la pantalla HTML por defecto
+- endpoint JSON `?api=playlist&screen=...&token=...`
+- lectura base de configuración desde Google Sheets
+- construcción de playlist por pantalla
+- validación de pantalla activa y token
+- soporte inicial para slides `HTML`, `IMAGE` y `VIDEO`
+- rotación automática en `screen.html`
+- refresco periódico de playlist
+- función `setupCarteleria()` para crear hojas base y datos demo
+
+## Modelo inicial previsto en Google Sheets
 
 ### PANTALLAS
 - `ID_PANTALLA`
@@ -46,6 +80,34 @@ Este repositorio es el **origen de verdad en GitHub** del proyecto y está pensa
 - `HASTA`
 - `ACTIVA`
 
+## Puesta en marcha mínima
+
+1. Sincroniza el repo con tu proyecto de Google Apps Script.
+2. Configura `CARTELERIA_SPREADSHEET_ID` en Script Properties si vas a usar una hoja concreta.
+3. Ejecuta `setupCarteleria()` una vez para crear la estructura base.
+4. Despliega la web app.
+5. Abre una pantalla con una URL como:
+
+```text
+...?screen=ENTRADA_PRINCIPAL&token=demo-token-001
+```
+
+6. Prueba el endpoint:
+
+```text
+...?api=playlist&screen=ENTRADA_PRINCIPAL&token=demo-token-001
+```
+
+## Criterio técnico del repo
+
+Este proyecto debe seguir siendo:
+
+- Apps Script puro
+- simple de desplegar
+- simple de mantener
+- compatible con sincronización directa GitHub -> Apps Script
+- libre de toolchains frontend innecesarios
+
 ## Próximo paso natural
 
-Desarrollar un panel de administración mínimo dentro del propio Apps Script sin introducir toolchains innecesarios.
+Desarrollar un panel de administración mínimo dentro del propio Apps Script sin introducir complejidad innecesaria.
