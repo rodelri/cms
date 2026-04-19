@@ -10,208 +10,96 @@
         --red: #DC001B;
         --orange: #F39900;
         --light: #DADCDE;
-        --dark: #51626F;
-        --bg: #f5f6f8;
+        --dark: #334350;
+        --bg: #f4f6f8;
         --card: #ffffff;
         --text: #1f2933;
         --ok: #11875d;
       }
-
       * { box-sizing: border-box; }
-
       html, body {
         margin: 0;
-        padding: 0;
         background: var(--bg);
         color: var(--text);
         font-family: Arial, sans-serif;
       }
-
-      .wrap {
-        max-width: 1240px;
-        margin: 0 auto;
+      .wrap { max-width: 1280px; margin: 0 auto; padding: 18px; }
+      .hero {
+        background: linear-gradient(135deg, var(--red), #8d0011);
+        color: #fff;
+        border-radius: 20px;
         padding: 20px;
       }
-
-      .hero {
-        background: linear-gradient(135deg, var(--red), #a40016);
-        color: #fff;
-        border-radius: 22px;
-        padding: 24px;
-        box-shadow: 0 10px 28px rgba(0,0,0,0.12);
-      }
-
-      .hero h1 {
-        margin: 0 0 8px;
-        font-size: 2rem;
-      }
-
-      .hero p {
-        margin: 0;
-        line-height: 1.45;
-        opacity: 0.96;
-      }
-
-      .hero-actions {
-        margin-top: 16px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-
+      .hero h1 { margin: 0 0 8px; }
+      .hero-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
       .btn {
-        appearance: none;
-        border: 0;
-        border-radius: 999px;
-        padding: 12px 18px;
-        font-size: 14px;
-        font-weight: 700;
-        cursor: pointer;
+        border: 0; border-radius: 999px; padding: 10px 14px; cursor: pointer;
+        font-weight: 700; font-size: 13px;
       }
-
-      .btn-primary {
-        background: #fff;
-        color: var(--red);
-      }
-
-      .btn-secondary {
-        background: rgba(255,255,255,0.16);
-        color: #fff;
-        border: 1px solid rgba(255,255,255,0.2);
-      }
-
-      .grid-kpi {
-        display: grid;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-        gap: 14px;
-        margin-top: 20px;
-      }
-
+      .btn-primary { background: #fff; color: var(--red); }
+      .btn-muted { background: #eef2f6; color: var(--dark); }
+      .btn-line { background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.25); }
+      .grid-kpi { display: grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap: 10px; margin-top: 14px; }
       .card {
         background: var(--card);
-        border-radius: 20px;
-        padding: 18px;
-        box-shadow: 0 10px 26px rgba(34, 41, 47, 0.08);
-      }
-
-      .kpi .label {
-        font-size: 12px;
-        color: var(--dark);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-      }
-
-      .kpi .value {
-        margin-top: 8px;
-        font-size: 2rem;
-        font-weight: 700;
-      }
-
-      .section {
-        margin-top: 20px;
-      }
-
-      .section h2 {
-        margin: 0 0 12px;
-        font-size: 1.35rem;
-      }
-
-      .meta-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
-      }
-
-      .meta-grid .card p {
-        margin: 6px 0;
-        line-height: 1.4;
-      }
-
-      .table-card {
-        overflow: hidden;
-      }
-
-      .table-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 12px;
-      }
-
-      .table-wrap {
-        overflow: auto;
-        border: 1px solid #e9edf1;
-        border-radius: 14px;
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 760px;
-        background: #fff;
-      }
-
-      th, td {
-        text-align: left;
-        padding: 10px 12px;
-        border-bottom: 1px solid #edf1f4;
-        vertical-align: top;
-        font-size: 14px;
-      }
-
-      th {
-        background: #fafbfc;
-        color: var(--dark);
-        position: sticky;
-        top: 0;
-      }
-
-      .badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 999px;
-        padding: 4px 10px;
-        font-size: 12px;
-        font-weight: 700;
-        background: #eceff2;
-        color: var(--dark);
-      }
-
-      .badge.ok {
-        background: rgba(17,135,93,0.12);
-        color: var(--ok);
-      }
-
-      .badge.no {
-        background: rgba(220,0,27,0.10);
-        color: var(--red);
-      }
-
-      .muted {
-        color: #6b7680;
-      }
-
-      .loading, .empty, .error {
-        padding: 18px;
         border-radius: 16px;
+        padding: 14px;
+        box-shadow: 0 7px 20px rgba(30,44,58,.09);
       }
-
-      .loading { background: #fff7e8; }
-      .error { background: #ffeaea; color: #7b1120; }
-      .empty { background: #f0f3f6; }
-
-      @media (max-width: 1000px) {
-        .grid-kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .meta-grid { grid-template-columns: 1fr; }
+      .kpi .label { font-size: 11px; color: #637482; text-transform: uppercase; }
+      .kpi .value { margin-top: 7px; font-size: 28px; font-weight: 700; }
+      .section { margin-top: 14px; }
+      .section h2 { margin: 0 0 8px; font-size: 20px; }
+      .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+      .table-wrap { overflow: auto; border: 1px solid #e7edf3; border-radius: 12px; }
+      table { width: 100%; border-collapse: collapse; min-width: 820px; }
+      th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #ecf0f3; font-size: 13px; vertical-align: top; }
+      th { background: #f8fafc; position: sticky; top: 0; }
+      .badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 999px; padding: 4px 8px; font-size: 11px; font-weight: 700;
       }
-
-      @media (max-width: 640px) {
-        .wrap { padding: 12px; }
-        .hero h1 { font-size: 1.6rem; }
-        .grid-kpi { grid-template-columns: 1fr 1fr; }
-        .card { padding: 14px; }
+      .badge.ok { background: rgba(17,135,93,.13); color: var(--ok); }
+      .badge.no { background: rgba(220,0,27,.12); color: var(--red); }
+      .muted { color: #6b7680; }
+      .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+      .action { border: 1px solid #d4dce4; background: #fff; border-radius: 8px; padding: 5px 8px; cursor: pointer; font-size: 12px; }
+      .layout-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .form-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; }
+      .field { display: flex; flex-direction: column; gap: 4px; }
+      .field label { font-size: 11px; color: #5e6e7a; font-weight: 700; }
+      .field input, .field select, .field textarea {
+        border: 1px solid #ccd7e0;
+        border-radius: 9px;
+        padding: 8px;
+        font-size: 13px;
+        font-family: inherit;
+      }
+      .field textarea { min-height: 84px; resize: vertical; }
+      .span-2 { grid-column: span 2; }
+      .span-4 { grid-column: span 4; }
+      .flash { margin-top: 8px; padding: 10px; border-radius: 8px; font-size: 13px; }
+      .flash.ok { background: #e9f7f1; color: #0f6b4a; }
+      .flash.error { background: #ffebee; color: #841d2a; }
+      .asset-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+      .asset-item { border: 1px solid #d9e2ea; border-radius: 10px; padding: 8px; background: #fff; }
+      .asset-item p { margin: 4px 0; font-size: 12px; }
+      .asset-item code { font-size: 11px; }
+      .empty, .loading, .error { padding: 12px; border-radius: 10px; }
+      .empty { background: #eef2f6; }
+      .loading { background: #fff5e8; }
+      .error { background: #ffe8ea; color: #7b1120; }
+      @media (max-width: 1100px) {
+        .grid-kpi { grid-template-columns: repeat(3, minmax(0,1fr)); }
+        .layout-two { grid-template-columns: 1fr; }
+        .form-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+        .span-4 { grid-column: span 2; }
+      }
+      @media (max-width: 720px) {
+        .grid-kpi { grid-template-columns: repeat(2, minmax(0,1fr)); }
+        .form-grid { grid-template-columns: 1fr; }
+        .span-2, .span-4 { grid-column: span 1; }
+        .asset-grid { grid-template-columns: 1fr; }
       }
     </style>
   </head>
@@ -219,11 +107,11 @@
     <div class="wrap">
       <section class="hero">
         <h1>CMS Cartelería · Administración</h1>
-        <p>Primer panel base dentro del propio Apps Script. Sirve para revisar el estado de pantallas, contenidos y asignaciones sin romper la vista pública de reproducción.</p>
+        <p>CRUD básico de pantallas, contenidos y asignaciones. Gestión rápida de recursos multimedia de Google Drive sin salir de Apps Script.</p>
         <div class="hero-actions">
           <button class="btn btn-primary" id="reloadBtn">Recargar datos</button>
-          <a class="btn btn-secondary" id="openSpreadsheetBtn" href="#" target="_blank" rel="noopener noreferrer">Abrir hoja</a>
-          <a class="btn btn-secondary" id="openScreenBtn" href="#" target="_blank" rel="noopener noreferrer">Abrir vista pública</a>
+          <a class="btn btn-line" id="openSpreadsheetBtn" href="#" target="_blank" rel="noopener noreferrer">Abrir hoja</a>
+          <a class="btn btn-line" id="openScreenBtn" href="#" target="_blank" rel="noopener noreferrer">Abrir vista pública</a>
         </div>
       </section>
 
@@ -231,52 +119,114 @@
         <div class="card loading">Cargando resumen…</div>
       </section>
 
-      <section class="section meta-grid">
+      <section class="section layout-two">
         <div class="card">
           <h2>Contexto</h2>
           <p><strong>URL script:</strong> <span id="scriptUrlText" class="muted"></span></p>
           <p><strong>Spreadsheet ID:</strong> <span id="sheetIdText" class="muted"></span></p>
+          <p><strong>Carpeta Drive:</strong> <span id="driveFolderText" class="muted">Pendiente</span></p>
           <p><strong>Última carga:</strong> <span id="generatedAtText" class="muted">Pendiente</span></p>
         </div>
         <div class="card">
-          <h2>Qué incluye esta primera versión</h2>
-          <p class="muted">Listado de tablas base, métricas rápidas y acceso a la hoja. El siguiente paso natural es añadir CRUD simple y filtros.</p>
-          <p class="muted">Ruta de acceso: <code>?view=admin</code> o <code>?admin=1</code>.</p>
+          <h2>Uso rápido</h2>
+          <p class="muted">1) Alta/edición de pantallas y contenidos.</p>
+          <p class="muted">2) Asignar contenido a pantalla con orden y fechas.</p>
+          <p class="muted">3) Para Drive, configura <code>CARTELERIA_DRIVE_FOLDER_ID</code> en Script Properties.</p>
         </div>
       </section>
 
-      <section class="section card table-card">
-        <div class="table-head">
+      <section class="section card">
+        <div class="toolbar">
           <h2>Pantallas</h2>
           <span class="muted" id="pantallasCountText"></span>
         </div>
-        <div id="pantallasHost" class="table-wrap"></div>
+        <form id="pantallaForm" class="form-grid">
+          <div class="field"><label>ID_PANTALLA</label><input name="ID_PANTALLA" required></div>
+          <div class="field"><label>NOMBRE</label><input name="NOMBRE" required></div>
+          <div class="field"><label>UBICACION</label><input name="UBICACION"></div>
+          <div class="field"><label>TOKEN</label><input name="TOKEN" required></div>
+          <div class="field"><label>REFRESH_SEG</label><input name="REFRESH_SEG" type="number" min="5" value="60"></div>
+          <div class="field"><label>FONDO_HEX</label><input name="FONDO_HEX" placeholder="#101820"></div>
+          <div class="field"><label>ACTIVA</label><select name="ACTIVA"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+          <div class="field"><label>Acciones</label><div><button class="btn btn-muted" type="submit">Guardar pantalla</button></div></div>
+        </form>
+        <div id="pantallaFlash"></div>
+        <div id="pantallasHost" class="table-wrap" style="margin-top:10px"></div>
       </section>
 
-      <section class="section card table-card">
-        <div class="table-head">
+      <section class="section card">
+        <div class="toolbar">
           <h2>Contenidos</h2>
           <span class="muted" id="contenidosCountText"></span>
         </div>
-        <div id="contenidosHost" class="table-wrap"></div>
+        <form id="contenidoForm" class="form-grid">
+          <div class="field"><label>ID_CONTENIDO</label><input name="ID_CONTENIDO" required></div>
+          <div class="field"><label>TIPO</label><select name="TIPO"><option>HTML</option><option>IMAGE</option><option>VIDEO</option></select></div>
+          <div class="field span-2"><label>TITULO</label><input name="TITULO" required></div>
+          <div class="field"><label>FILE_ID (o URL Drive)</label><input name="FILE_ID" placeholder="1AbCd... o URL de Drive"></div>
+          <div class="field span-2"><label>URL (opcional, prioridad alta)</label><input name="URL" placeholder="https://..."></div>
+          <div class="field"><label>DURACION_SEG</label><input name="DURACION_SEG" type="number" min="1" value="10"></div>
+          <div class="field"><label>ACTIVO</label><select name="ACTIVO"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+          <div class="field span-4"><label>TEXTO_HTML (para tipo HTML)</label><textarea name="TEXTO_HTML"></textarea></div>
+          <div class="field"><label>Acciones</label><div><button class="btn btn-muted" type="submit">Guardar contenido</button></div></div>
+        </form>
+        <div id="contenidoFlash"></div>
+        <div id="contenidosHost" class="table-wrap" style="margin-top:10px"></div>
       </section>
 
-      <section class="section card table-card">
-        <div class="table-head">
+      <section class="section card">
+        <div class="toolbar">
           <h2>Asignaciones</h2>
           <span class="muted" id="asignacionesCountText"></span>
         </div>
-        <div id="asignacionesHost" class="table-wrap"></div>
+        <form id="asignacionForm" class="form-grid">
+          <input type="hidden" name="_ROW">
+          <div class="field"><label>ID_PANTALLA</label><input name="ID_PANTALLA" required></div>
+          <div class="field"><label>ID_CONTENIDO</label><input name="ID_CONTENIDO" required></div>
+          <div class="field"><label>ORDEN</label><input name="ORDEN" type="number" min="1" value="1"></div>
+          <div class="field"><label>ACTIVA</label><select name="ACTIVA"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+          <div class="field"><label>DESDE (YYYY-MM-DD)</label><input name="DESDE" placeholder="2026-09-01"></div>
+          <div class="field"><label>HASTA (YYYY-MM-DD)</label><input name="HASTA" placeholder="2026-09-30"></div>
+          <div class="field"><label>Acciones</label><div><button class="btn btn-muted" type="submit">Guardar asignación</button></div></div>
+        </form>
+        <div id="asignacionFlash"></div>
+        <div id="asignacionesHost" class="table-wrap" style="margin-top:10px"></div>
+      </section>
+
+      <section class="section card">
+        <div class="toolbar">
+          <h2>Recursos de Google Drive</h2>
+          <button class="btn btn-muted" id="loadDriveBtn" type="button">Cargar carpeta</button>
+        </div>
+        <div id="driveHost" class="empty">Pulsa "Cargar carpeta" para listar imágenes/vídeos de la carpeta configurada.</div>
       </section>
     </div>
 
     <script>
       const BOOT = <?!= JSON.stringify(bootConfig || {}) ?>;
+      let lastData = null;
+
       const reloadBtn = document.getElementById('reloadBtn');
       const openSpreadsheetBtn = document.getElementById('openSpreadsheetBtn');
       const openScreenBtn = document.getElementById('openScreenBtn');
 
       reloadBtn.addEventListener('click', loadDashboard);
+      document.getElementById('loadDriveBtn').addEventListener('click', loadDriveResources);
+
+      document.getElementById('pantallaForm').addEventListener('submit', function(ev) {
+        ev.preventDefault();
+        submitForm('pantallaForm', 'savePantallaAdmin', 'pantallaFlash');
+      });
+
+      document.getElementById('contenidoForm').addEventListener('submit', function(ev) {
+        ev.preventDefault();
+        submitForm('contenidoForm', 'saveContenidoAdmin', 'contenidoFlash');
+      });
+
+      document.getElementById('asignacionForm').addEventListener('submit', function(ev) {
+        ev.preventDefault();
+        submitForm('asignacionForm', 'saveAsignacionAdmin', 'asignacionFlash');
+      });
 
       hydrateStaticBoot();
       loadDashboard();
@@ -302,6 +252,17 @@
           .getAdminDashboardData();
       }
 
+      function loadDriveResources() {
+        const host = document.getElementById('driveHost');
+        host.innerHTML = '<div class="loading">Cargando recursos de Drive…</div>';
+        google.script.run
+          .withSuccessHandler(renderDriveResources)
+          .withFailureHandler(function(err) {
+            host.innerHTML = '<div class="error">' + escapeHtml((err && err.message) || String(err)) + '</div>';
+          })
+          .getDriveResourcesAdmin();
+      }
+
       function setLoadingState() {
         document.getElementById('kpiGrid').innerHTML = '<div class="card loading">Cargando resumen…</div>';
         document.getElementById('pantallasHost').innerHTML = '<div class="loading">Cargando pantallas…</div>';
@@ -315,11 +276,12 @@
           return;
         }
 
+        lastData = data;
         document.getElementById('generatedAtText').textContent = formatDateTime(data.generatedAt);
         document.getElementById('sheetIdText').textContent = data.spreadsheetId || '(sin spreadsheet configurado)';
-        if (data.spreadsheetUrl) {
-          openSpreadsheetBtn.href = data.spreadsheetUrl;
-        }
+        document.getElementById('driveFolderText').textContent = data.driveFolderId || '(sin CARTELERIA_DRIVE_FOLDER_ID)';
+
+        if (data.spreadsheetUrl) openSpreadsheetBtn.href = data.spreadsheetUrl;
 
         renderKpis(data.counts || {});
         renderPantallas(data.pantallas || []);
@@ -330,9 +292,20 @@
       function renderFailure(err) {
         const msg = typeof err === 'string' ? err : ((err && err.message) || 'Error inesperado');
         document.getElementById('kpiGrid').innerHTML = '<div class="card error"><strong>Error:</strong> ' + escapeHtml(msg) + '</div>';
-        document.getElementById('pantallasHost').innerHTML = '<div class="error">No se pudo cargar la tabla de pantallas.</div>';
-        document.getElementById('contenidosHost').innerHTML = '<div class="error">No se pudo cargar la tabla de contenidos.</div>';
-        document.getElementById('asignacionesHost').innerHTML = '<div class="error">No se pudo cargar la tabla de asignaciones.</div>';
+      }
+
+      function submitForm(formId, methodName, flashId) {
+        const payload = formToObject(document.getElementById(formId));
+        showFlash(flashId, 'Guardando…', 'ok');
+
+        google.script.run
+          .withSuccessHandler(function(data) {
+            showFlash(flashId, 'Guardado correctamente.', 'ok');
+            renderDashboard(data);
+          })
+          .withFailureHandler(function(err) {
+            showFlash(flashId, (err && err.message) || String(err), 'error');
+          })[methodName](payload);
       }
 
       function renderKpis(counts) {
@@ -346,54 +319,152 @@
         ];
 
         document.getElementById('kpiGrid').innerHTML = items.map(function(item) {
-          return [
-            '<div class="card kpi">',
-            '<div class="label">' + escapeHtml(item[0]) + '</div>',
-            '<div class="value">' + escapeHtml(String(item[1])) + '</div>',
-            '</div>'
-          ].join('');
+          return '<div class="card kpi"><div class="label">' + escapeHtml(item[0]) + '</div><div class="value">' + escapeHtml(String(item[1])) + '</div></div>';
         }).join('');
       }
 
       function renderPantallas(rows) {
         document.getElementById('pantallasCountText').textContent = rows.length + ' filas';
-        const headers = ['ID_PANTALLA', 'NOMBRE', 'UBICACION', 'TOKEN', 'ACTIVA', 'REFRESH_SEG', 'FONDO_HEX'];
+        const headers = ['ID_PANTALLA', 'NOMBRE', 'UBICACION', 'TOKEN', 'ACTIVA', 'REFRESH_SEG', 'FONDO_HEX', 'ACCIONES'];
         document.getElementById('pantallasHost').innerHTML = buildTable(rows, headers, function(row, key) {
           if (key === 'ACTIVA') return renderBadge(row[key]);
           if (key === 'TOKEN') return '<code>' + escapeHtml(valueOrDash(row[key])) + '</code>';
+          if (key === 'ACCIONES') return renderPantallaActions(row);
           return escapeHtml(valueOrDash(row[key]));
         });
       }
 
       function renderContenidos(rows) {
         document.getElementById('contenidosCountText').textContent = rows.length + ' filas';
-        const headers = ['ID_CONTENIDO', 'TIPO', 'TITULO', 'URL', 'FILE_ID', 'DURACION_SEG', 'ACTIVO'];
+        const headers = ['ID_CONTENIDO', 'TIPO', 'TITULO', 'FILE_ID', 'URL', 'DURACION_SEG', 'ACTIVO', 'ACCIONES'];
         document.getElementById('contenidosHost').innerHTML = buildTable(rows, headers, function(row, key) {
           if (key === 'ACTIVO') return renderBadge(row[key]);
           if (key === 'URL' && row[key]) return '<a href="' + escapeAttribute(String(row[key])) + '" target="_blank" rel="noopener noreferrer">Abrir</a>';
           if (key === 'FILE_ID' && row[key]) return '<code>' + escapeHtml(String(row[key])) + '</code>';
+          if (key === 'ACCIONES') return renderContenidoActions(row);
           return escapeHtml(valueOrDash(row[key]));
         });
       }
 
       function renderAsignaciones(rows) {
         document.getElementById('asignacionesCountText').textContent = rows.length + ' filas';
-        const headers = ['ID_PANTALLA', 'ID_CONTENIDO', 'ORDEN', 'DESDE', 'HASTA', 'ACTIVA'];
+        const headers = ['_ROW', 'ID_PANTALLA', 'ID_CONTENIDO', 'ORDEN', 'DESDE', 'HASTA', 'ACTIVA', 'ACCIONES'];
         document.getElementById('asignacionesHost').innerHTML = buildTable(rows, headers, function(row, key) {
           if (key === 'ACTIVA') return renderBadge(row[key]);
+          if (key === 'ACCIONES') return renderAsignacionActions(row);
           return escapeHtml(formatCell(row[key]));
         });
       }
 
-      function buildTable(rows, headers, cellRenderer) {
-        if (!rows.length) {
-          return '<div class="empty">No hay datos todavía.</div>';
+      function renderPantallaActions(row) {
+        const active = isYes(row.ACTIVA);
+        return '<div class="row-actions">'
+          + '<button class="action" type="button" onclick="editPantalla(\'' + escJs(row.ID_PANTALLA) + '\')">Editar</button>'
+          + '<button class="action" type="button" onclick="togglePantalla(\'' + escJs(row.ID_PANTALLA) + '\',' + (!active) + ')">' + (active ? 'Desactivar' : 'Activar') + '</button>'
+          + '</div>';
+      }
+
+      function renderContenidoActions(row) {
+        const active = isYes(row.ACTIVO);
+        return '<div class="row-actions">'
+          + '<button class="action" type="button" onclick="editContenido(\'' + escJs(row.ID_CONTENIDO) + '\')">Editar</button>'
+          + '<button class="action" type="button" onclick="toggleContenido(\'' + escJs(row.ID_CONTENIDO) + '\',' + (!active) + ')">' + (active ? 'Desactivar' : 'Activar') + '</button>'
+          + '</div>';
+      }
+
+      function renderAsignacionActions(row) {
+        const active = isYes(row.ACTIVA);
+        return '<div class="row-actions">'
+          + '<button class="action" type="button" onclick="editAsignacion(' + Number(row._ROW || 0) + ')">Editar</button>'
+          + '<button class="action" type="button" onclick="toggleAsignacion(' + Number(row._ROW || 0) + ',' + (!active) + ')">' + (active ? 'Desactivar' : 'Activar') + '</button>'
+          + '</div>';
+      }
+
+      function togglePantalla(id, activa) {
+        google.script.run.withSuccessHandler(renderDashboard).withFailureHandler(renderFailure).setPantallaActivaAdmin(id, activa);
+      }
+
+      function toggleContenido(id, activo) {
+        google.script.run.withSuccessHandler(renderDashboard).withFailureHandler(renderFailure).setContenidoActivoAdmin(id, activo);
+      }
+
+      function toggleAsignacion(rowNum, activa) {
+        google.script.run.withSuccessHandler(loadDashboard).withFailureHandler(renderFailure).setAsignacionActivaAdmin(rowNum, activa);
+      }
+
+      function editPantalla(id) {
+        const row = (lastData && lastData.pantallas || []).find(r => String(r.ID_PANTALLA) === String(id));
+        if (!row) return;
+        fillForm('pantallaForm', row);
+      }
+
+      function editContenido(id) {
+        const row = (lastData && lastData.contenidos || []).find(r => String(r.ID_CONTENIDO) === String(id));
+        if (!row) return;
+        fillForm('contenidoForm', row);
+      }
+
+      function editAsignacion(rowNum) {
+        const row = (lastData && lastData.asignaciones || []).find(r => Number(r._ROW) === Number(rowNum));
+        if (!row) return;
+        fillForm('asignacionForm', row);
+      }
+
+      function renderDriveResources(data) {
+        const host = document.getElementById('driveHost');
+        if (!data || !data.ok) {
+          host.innerHTML = '<div class="error">No se pudieron cargar recursos.</div>';
+          return;
         }
 
-        const thead = '<thead><tr>' + headers.map(function(h) {
-          return '<th>' + escapeHtml(h) + '</th>';
-        }).join('') + '</tr></thead>';
+        if (!data.folderId) {
+          host.innerHTML = '<div class="empty">' + escapeHtml(data.note || 'Configura CARTELERIA_DRIVE_FOLDER_ID.') + '</div>';
+          return;
+        }
 
+        if (!data.files || !data.files.length) {
+          host.innerHTML = '<div class="empty">Carpeta válida, pero sin recursos de imagen/vídeo compatibles.</div>';
+          return;
+        }
+
+        const listHtml = data.files.map(function(file) {
+          return '<article class="asset-item">'
+            + '<p><strong>' + escapeHtml(file.name || '') + '</strong></p>'
+            + '<p><span class="badge ' + (file.type === 'VIDEO' ? 'no' : 'ok') + '">' + escapeHtml(file.type) + '</span></p>'
+            + '<p><code>' + escapeHtml(file.fileId || '') + '</code></p>'
+            + '<div class="row-actions">'
+            + '<button class="action" type="button" onclick="useDriveAsset(\'' + escJs(file.fileId) + '\',\'' + escJs(file.type) + '\')">Usar en formulario</button>'
+            + '<a class="action" href="' + escapeAttribute(file.url || '#') + '" target="_blank" rel="noopener noreferrer">Abrir URL</a>'
+            + '</div>'
+            + '</article>';
+        }).join('');
+
+        host.innerHTML = '<p class="muted">Carpeta: <a href="' + escapeAttribute(data.folderUrl || '#') + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(data.folderId) + '</a></p>'
+          + '<p class="muted">' + escapeHtml(data.note || '') + '</p>'
+          + '<div class="asset-grid">' + listHtml + '</div>';
+      }
+
+      function useDriveAsset(fileId, type) {
+        const form = document.getElementById('contenidoForm');
+        form.elements.FILE_ID.value = fileId;
+        form.elements.TIPO.value = type || 'IMAGE';
+        form.elements.URL.value = '';
+        showFlash('contenidoFlash', 'FILE_ID cargado en el formulario de contenidos.', 'ok');
+      }
+
+      function fillForm(formId, data) {
+        const form = document.getElementById(formId);
+        Object.keys(data || {}).forEach(function(key) {
+          if (form.elements[key]) {
+            form.elements[key].value = data[key] == null ? '' : data[key];
+          }
+        });
+      }
+
+      function buildTable(rows, headers, cellRenderer) {
+        if (!rows.length) return '<div class="empty">No hay datos todavía.</div>';
+
+        const thead = '<thead><tr>' + headers.map(h => '<th>' + escapeHtml(h) + '</th>').join('') + '</tr></thead>';
         const tbody = '<tbody>' + rows.map(function(row) {
           return '<tr>' + headers.map(function(key) {
             return '<td>' + cellRenderer(row, key) + '</td>';
@@ -403,11 +474,28 @@
         return '<table>' + thead + tbody + '</table>';
       }
 
+      function formToObject(form) {
+        const obj = {};
+        Array.prototype.slice.call(form.elements).forEach(function(el) {
+          if (!el.name) return;
+          obj[el.name] = String(el.value == null ? '' : el.value).trim();
+        });
+        return obj;
+      }
+
       function renderBadge(value) {
         const isActive = isYes(value);
-        const cls = isActive ? 'badge ok' : 'badge no';
-        const label = isActive ? 'Sí' : 'No';
-        return '<span class="' + cls + '">' + label + '</span>';
+        return '<span class="badge ' + (isActive ? 'ok' : 'no') + '">' + (isActive ? 'Sí' : 'No') + '</span>';
+      }
+
+      function showFlash(hostId, msg, type) {
+        const host = document.getElementById(hostId);
+        host.innerHTML = '<div class="flash ' + (type === 'error' ? 'error' : 'ok') + '">' + escapeHtml(msg || '') + '</div>';
+        if (msg) {
+          setTimeout(function() {
+            if (host.innerHTML.indexOf(escapeHtml(msg)) !== -1) host.innerHTML = '';
+          }, 5000);
+        }
       }
 
       function isYes(value) {
@@ -428,6 +516,10 @@
         const date = new Date(value);
         if (isNaN(date.getTime())) return valueOrDash(value);
         return date.toLocaleString('es-ES');
+      }
+
+      function escJs(value) {
+        return String(value == null ? '' : value).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
       }
 
       function escapeHtml(value) {

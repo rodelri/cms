@@ -7,8 +7,11 @@
     <title>CMS Cartelería</title>
     <style>
       :root {
-        --bg: #000000;
+        --bg: #101820;
+        --bg-soft: #23313f;
         --fg: #ffffff;
+        --brand-red: #DC001B;
+        --brand-orange: #F39900;
       }
 
       * { box-sizing: border-box; }
@@ -27,49 +30,102 @@
         position: relative;
       }
 
-      #app {
-        position: absolute;
-        inset: 0;
-        background: var(--bg);
-      }
+      #app { position: absolute; inset: 0; }
 
       .slide {
         position: absolute;
         inset: 0;
         display: none;
-        width: 100%;
-        height: 100%;
-        background: transparent;
       }
 
-      .slide.is-visible {
+      .slide.is-visible { display: block; }
+
+      .frame {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.08), transparent 45%),
+                    linear-gradient(140deg, rgba(16,24,32,0.55), rgba(16,24,32,0.15));
+      }
+
+      .frame-header,
+      .frame-footer {
+        padding: 1.2vw 2vw;
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: space-between;
+        gap: 16px;
+        z-index: 3;
       }
 
-      .slide-html {
-        padding: 3vw;
-        color: #fff;
-        width: 100%;
-        height: 100%;
+      .frame-header {
+        background: linear-gradient(90deg, rgba(220,0,27,0.82), rgba(220,0,27,0.28), transparent 75%);
+      }
+
+      .frame-footer {
+        background: linear-gradient(90deg, rgba(243,153,0,0.14), rgba(16,24,32,0.0));
+      }
+
+      .brand-title {
+        font-size: 1.4vw;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      .slide-title {
+        font-size: 1vw;
+        opacity: 0.95;
+      }
+
+      .footer-tag {
+        font-size: .9vw;
+        opacity: .88;
+      }
+
+      .frame-main {
+        min-height: 0;
+        position: relative;
         overflow: hidden;
       }
 
-      .slide-html .content-wrap {
-        width: 100%;
-        height: 100%;
+      .media-backdrop {
+        position: absolute;
+        inset: 0;
+        filter: blur(32px) saturate(85%);
+        transform: scale(1.1);
+        opacity: .42;
+        pointer-events: none;
       }
 
-      .slide-image img,
-      .slide-video video,
-      .slide-video iframe {
+      .media-foreground {
+        position: absolute;
+        inset: 2.5vw 2.5vw;
+        border-radius: 1.2vw;
+        overflow: hidden;
+        box-shadow: 0 14px 36px rgba(0,0,0,0.35);
+        background: rgba(0,0,0,0.42);
+      }
+
+      .media-foreground img,
+      .media-foreground video {
         width: 100%;
         height: 100%;
-        object-fit: contain;
-        background: #000;
         border: 0;
       }
+
+      .slide-html .html-wrap {
+        position: absolute;
+        inset: 2.5vw;
+        border-radius: 1.2vw;
+        overflow: auto;
+        padding: 2.6vw;
+        background: linear-gradient(145deg, rgba(16,24,32,.76), rgba(16,24,32,.28));
+        border: 1px solid rgba(255,255,255,.14);
+        box-shadow: 0 14px 36px rgba(0,0,0,0.28);
+      }
+
+      .slide-html .html-wrap > *:first-child { margin-top: 0; }
 
       .placeholder,
       .error-box,
@@ -81,34 +137,34 @@
         justify-content: center;
         flex-direction: column;
         text-align: center;
-        padding: 3rem;
+        padding: 2rem;
       }
 
       .placeholder h1,
       .error-box h1,
       .loading-box h1 {
-        margin: 0 0 1rem;
-        font-size: 3rem;
+        margin: 0 0 .8rem;
+        font-size: 2.7rem;
       }
 
       .placeholder p,
       .error-box p,
       .loading-box p {
-        margin: 0.35rem 0;
-        font-size: 1.3rem;
-        opacity: 0.92;
+        margin: 0.3rem 0;
+        font-size: 1.2rem;
+        opacity: 0.9;
       }
 
       #statusBar {
         position: absolute;
-        right: 12px;
-        bottom: 12px;
-        z-index: 20;
-        font-size: 12px;
-        padding: 6px 10px;
+        right: 10px;
+        bottom: 10px;
+        z-index: 50;
+        font-size: 11px;
+        padding: 5px 8px;
         border-radius: 999px;
         background: rgba(0,0,0,0.45);
-        color: rgba(255,255,255,0.85);
+        color: rgba(255,255,255,0.86);
       }
     </style>
   </head>
@@ -124,7 +180,6 @@
     <script>
       const BOOT = <?!= JSON.stringify(bootConfig || {}) ?>;
       const appEl = document.getElementById('app');
-      const loadingBox = document.getElementById('loadingBox');
       const statusBar = document.getElementById('statusBar');
 
       let playlist = [];
@@ -133,6 +188,7 @@
       let refreshTimer = null;
       let activeVideo = null;
       let lastRefreshSeg = 60;
+      let currentScreenInfo = null;
 
       init();
 
@@ -154,44 +210,106 @@
         clearTimers();
         updateStatus('Solicitando playlist');
 
-        try {
-          const url = buildPlaylistUrl();
-          const response = await fetch(url, { cache: 'no-store' });
-          const data = await response.json();
+        const urls = buildPlaylistUrlCandidates();
+        let lastError = null;
 
-          if (!data.ok) {
-            renderMessage('No se pudo cargar la playlist', [data.error || 'Error desconocido'], 'error');
-            scheduleRefresh(30);
-            return;
-          }
+        for (let i = 0; i < urls.length; i++) {
+          const url = urls[i];
+          try {
+            const response = await fetchWithTimeout_(url, 12000);
+            if (!response.ok) {
+              throw new Error('HTTP ' + response.status + ' en ' + url);
+            }
 
-          playlist = Array.isArray(data.playlist) ? data.playlist : [];
-          currentIndex = 0;
-          lastRefreshSeg = Number(data.screen && data.screen.refreshSeg) || 60;
-          document.documentElement.style.setProperty('--bg', (data.screen && data.screen.fondoHex) || '#000000');
+            const text = await response.text();
+            let data = null;
+            try {
+              data = JSON.parse(text);
+            } catch (parseErr) {
+              throw new Error('Respuesta no JSON en ' + url + '. ¿La Web App está desplegada con acceso correcto?');
+            }
 
-          if (!playlist.length) {
-            renderMessage('Sin contenidos asignados', [
-              'La pantalla está activa, pero no tiene slides disponibles ahora mismo.'
-            ], 'placeholder');
+            if (!data.ok) {
+              renderMessage('No se pudo cargar la playlist', [data.error || 'Error desconocido'], 'error');
+              scheduleRefresh(30);
+              return;
+            }
+
+            playlist = Array.isArray(data.playlist) ? data.playlist : [];
+            currentIndex = 0;
+            currentScreenInfo = data.screen || null;
+            lastRefreshSeg = Number(data.screen && data.screen.refreshSeg) || 60;
+            applyScreenTheme(data.screen || {});
+
+            if (!playlist.length) {
+              renderMessage('Sin contenidos asignados', [
+                'La pantalla está activa, pero no tiene slides disponibles ahora mismo.'
+              ], 'placeholder');
+              scheduleRefresh(lastRefreshSeg);
+              return;
+            }
+
+            showSlide(currentIndex);
             scheduleRefresh(lastRefreshSeg);
             return;
+          } catch (err) {
+            lastError = err;
           }
+        }
 
-          showSlide(currentIndex);
-          scheduleRefresh(lastRefreshSeg);
+        renderMessage('Error de red o parsing', [
+          String(lastError && lastError.message || lastError),
+          'URL probadas: ' + urls.join(' | '),
+          'Revisa despliegue Web App y permisos de acceso.'
+        ], 'error');
+        scheduleRefresh(30);
+      }
+
+
+      async function fetchWithTimeout_(url, timeoutMs) {
+        const timeout = Math.max(3000, Number(timeoutMs) || 12000);
+        if (typeof AbortController === 'undefined') {
+          return fetch(url, { cache: 'no-store' });
+        }
+
+        const controller = new AbortController();
+        const timer = setTimeout(function() {
+          controller.abort();
+        }, timeout);
+
+        try {
+          return await fetch(url, { cache: 'no-store', signal: controller.signal });
         } catch (err) {
-          renderMessage('Error de red o parsing', [String(err && err.message || err)], 'error');
-          scheduleRefresh(30);
+          if (err && err.name === 'AbortError') {
+            throw new Error('Timeout de red (' + timeout + ' ms) en ' + url);
+          }
+          throw err;
+        } finally {
+          clearTimeout(timer);
         }
       }
 
-      function buildPlaylistUrl() {
-        const url = new URL(BOOT.apiBase, window.location.href);
-        url.searchParams.set('api', 'playlist');
-        url.searchParams.set('screen', BOOT.screen);
-        url.searchParams.set('token', BOOT.token);
-        return url.toString();
+      function applyScreenTheme(screen) {
+        const bg = screen && screen.fondoHex ? screen.fondoHex : '#101820';
+        document.documentElement.style.setProperty('--bg', bg);
+        document.documentElement.style.setProperty('--bg-soft', mixWithBlack(bg, 0.25));
+      }
+
+      function buildPlaylistUrlCandidates() {
+        const unique = {};
+        const seeds = [BOOT.apiBase, window.location.href];
+
+        seeds.forEach(function(seed) {
+          try {
+            const url = new URL(seed || window.location.href, window.location.href);
+            url.searchParams.set('api', 'playlist');
+            url.searchParams.set('screen', BOOT.screen);
+            url.searchParams.set('token', BOOT.token);
+            unique[url.toString()] = true;
+          } catch (err) {}
+        });
+
+        return Object.keys(unique);
       }
 
       function showSlide(index) {
@@ -205,29 +323,29 @@
           return;
         }
 
-        updateStatus('Mostrando ' + (item.title || item.id || ('slide ' + (index + 1))));
+        const label = item.title || item.id || ('slide ' + (index + 1));
+        updateStatus('Mostrando ' + label);
         appEl.innerHTML = '';
 
         const type = String(item.type || '').toUpperCase();
-        const slide = document.createElement('section');
-        slide.className = 'slide is-visible';
+        const slide = createFrameShell_(label);
 
         if (type === 'HTML') {
           slide.classList.add('slide-html');
           const wrap = document.createElement('div');
-          wrap.className = 'content-wrap';
+          wrap.className = 'html-wrap';
           wrap.innerHTML = item.textHtml || '<div class="placeholder"><h1>HTML vacío</h1></div>';
-          slide.appendChild(wrap);
+          slide.querySelector('.frame-main').appendChild(wrap);
           appEl.appendChild(slide);
           scheduleNext(item.durationSeg || 10);
           return;
         }
 
         if (type === 'IMAGE') {
-          slide.classList.add('slide-image');
-          const img = document.createElement('img');
-          img.alt = item.title || 'Imagen';
-          img.src = item.url || '';
+          const media = buildMediaLayer_(item.url, 'image', item.imageFit || 'contain');
+          slide.querySelector('.frame-main').appendChild(media);
+          appEl.appendChild(slide);
+          const img = slide.querySelector('img[data-role="fg"]');
           img.onerror = function() {
             renderMessage('Imagen no disponible', [item.title || '', item.url || 'URL vacía'], 'error');
             scheduleNext(item.durationSeg || 10);
@@ -235,45 +353,84 @@
           img.onload = function() {
             scheduleNext(item.durationSeg || 10);
           };
-          slide.appendChild(img);
-          appEl.appendChild(slide);
           return;
         }
 
         if (type === 'VIDEO') {
-          slide.classList.add('slide-video');
           if (!item.url) {
             renderMessage('Vídeo sin URL', [item.title || item.id || 'Contenido sin recurso'], 'error');
             scheduleNext(item.durationSeg || 10);
             return;
           }
 
-          const video = document.createElement('video');
-          video.src = item.url;
+          const media = buildMediaLayer_(item.url, 'video', 'contain');
+          slide.querySelector('.frame-main').appendChild(media);
+          appEl.appendChild(slide);
+
+          const video = slide.querySelector('video[data-role="fg"]');
+          activeVideo = video;
           video.autoplay = true;
           video.muted = true;
           video.playsInline = true;
           video.controls = false;
-          activeVideo = video;
 
-          video.addEventListener('ended', function() {
-            nextSlide();
-          });
+          video.addEventListener('ended', nextSlide);
           video.addEventListener('error', function() {
             renderMessage('Vídeo no disponible', [item.title || '', item.url], 'error');
             scheduleNext(item.durationSeg || 10);
           });
 
-          slide.appendChild(video);
-          appEl.appendChild(slide);
-          if (item.durationSeg) {
-            scheduleNext(item.durationSeg);
-          }
+          if (item.durationSeg) scheduleNext(item.durationSeg);
           return;
         }
 
         renderMessage('Tipo no soportado', [type || 'Sin tipo definido'], 'error');
         scheduleNext(item.durationSeg || 10);
+      }
+
+      function createFrameShell_(slideTitle) {
+        const section = document.createElement('section');
+        section.className = 'slide is-visible';
+        section.innerHTML = '<div class="frame">'
+          + '<header class="frame-header"><span class="brand-title">Cartelería del centro</span><span class="slide-title"></span></header>'
+          + '<main class="frame-main"></main>'
+          + '<footer class="frame-footer"><span class="footer-tag"></span><span class="footer-tag">Actualización automática</span></footer>'
+          + '</div>';
+
+        section.querySelector('.slide-title').textContent = slideTitle || '';
+        const footerText = [
+          currentScreenInfo && currentScreenInfo.nombre ? currentScreenInfo.nombre : BOOT.screen,
+          currentScreenInfo && currentScreenInfo.ubicacion ? currentScreenInfo.ubicacion : ''
+        ].filter(Boolean).join(' · ');
+        section.querySelector('.frame-footer .footer-tag').textContent = footerText || 'Pantalla pública';
+        return section;
+      }
+
+      function buildMediaLayer_(url, kind, fitMode) {
+        const holder = document.createElement('div');
+
+        const backdrop = document.createElement(kind === 'video' ? 'video' : 'img');
+        backdrop.className = 'media-backdrop';
+        backdrop.src = url || '';
+        if (kind === 'video') {
+          backdrop.muted = true;
+          backdrop.autoplay = true;
+          backdrop.loop = true;
+          backdrop.playsInline = true;
+        }
+
+        const fgWrap = document.createElement('div');
+        fgWrap.className = 'media-foreground';
+
+        const fg = document.createElement(kind === 'video' ? 'video' : 'img');
+        fg.setAttribute('data-role', 'fg');
+        fg.src = url || '';
+        fg.style.objectFit = fitMode === 'cover' ? 'cover' : 'contain';
+
+        fgWrap.appendChild(fg);
+        holder.appendChild(backdrop);
+        holder.appendChild(fgWrap);
+        return holder;
       }
 
       function nextSlide() {
@@ -328,6 +485,26 @@
         ].join('');
         appEl.innerHTML = html;
         updateStatus(title || 'Estado');
+      }
+
+      function mixWithBlack(hex, factor) {
+        const n = parseHexColor(hex);
+        if (!n) return '#101820';
+        const ratio = Math.max(0, Math.min(1, Number(factor) || 0));
+        const r = Math.round(n.r * (1 - ratio));
+        const g = Math.round(n.g * (1 - ratio));
+        const b = Math.round(n.b * (1 - ratio));
+        return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+      }
+
+      function parseHexColor(value) {
+        const raw = String(value || '').trim().replace('#', '');
+        if (!/^[0-9a-fA-F]{6}$/.test(raw)) return null;
+        return {
+          r: parseInt(raw.slice(0, 2), 16),
+          g: parseInt(raw.slice(2, 4), 16),
+          b: parseInt(raw.slice(4, 6), 16)
+        };
       }
 
       function escapeHtml(value) {
