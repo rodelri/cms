@@ -110,6 +110,8 @@ Notas de permisos:
 ### Obligatoria/recomendada
 - `CARTELERIA_SPREADSHEET_ID` (recomendada): ID de la hoja de cálculo con datos del CMS.
 
+## Criterio técnico
+
 ### Nueva para Drive (opcional)
 - `CARTELERIA_DRIVE_FOLDER_ID`: carpeta de Drive para listar recursos desde el panel admin.
 
@@ -122,6 +124,16 @@ Se mantiene intencionalmente simple para Apps Script:
 
 
 ## Problema común: “Error de red o parsing / Failed to fetch”
+
+Si aparece en `screen.html`:
+
+1. Verifica que estás usando la **URL desplegada** de Web App (no la vista previa del editor).
+2. Revisa en Deploy que el acceso permita al dispositivo de pantalla consultar la app.
+3. Comprueba `screen` y `token` válidos.
+
+La pantalla intenta consultar la API por la URL configurada y también por la URL actual como fallback.
+Si la pantalla se queda en "Iniciando pantalla…", revisa conectividad del dispositivo: ahora hay timeout de red y el error se mostrará en pantalla automáticamente.
+
 
 Si aparece en `screen.html`:
 

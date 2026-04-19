@@ -227,6 +227,7 @@
         for (let i = 0; i < urls.length; i++) {
           const url = urls[i];
           try {
+            const response = await fetchWithTimeout_(url, 12000);
             const response = await fetch(url, { cache: 'no-store' });
             if (!response.ok) {
               throw new Error('HTTP ' + response.status + ' en ' + url);
@@ -261,12 +262,45 @@
             }
 
             showSlide(currentIndex);
+            scheduleRefresh(lastRefreshSeg);
           if (!data.ok) {
             renderMessage('No se pudo cargar la playlist', [data.error || 'Error desconocido'], 'error');
             scheduleRefresh(30);
             return;
+          } catch (err) {
+            lastError = err;
           }
+        }
 
+        renderMessage('Error de red o parsing', [
+          String(lastError && lastError.message || lastError),
+          'URL probadas: ' + urls.join(' | '),
+          'Revisa despliegue Web App y permisos de acceso.'
+        ], 'error');
+        scheduleRefresh(30);
+      }
+
+
+      async function fetchWithTimeout_(url, timeoutMs) {
+        const timeout = Math.max(3000, Number(timeoutMs) || 12000);
+        if (typeof AbortController === 'undefined') {
+          return fetch(url, { cache: 'no-store' });
+        }
+
+        const controller = new AbortController();
+        const timer = setTimeout(function() {
+          controller.abort();
+        }, timeout);
+
+        try {
+          return await fetch(url, { cache: 'no-store', signal: controller.signal });
+        } catch (err) {
+          if (err && err.name === 'AbortError') {
+            throw new Error('Timeout de red (' + timeout + ' ms) en ' + url);
+          }
+          throw err;
+        } finally {
+          clearTimeout(timer);
           playlist = Array.isArray(data.playlist) ? data.playlist : [];
           currentIndex = 0;
           currentScreenInfo = data.screen || null;
@@ -290,6 +324,12 @@
           'Revisa despliegue Web App y permisos de acceso.'
         ], 'error');
         scheduleRefresh(30);
+      }
+
+      function applyScreenTheme(screen) {
+        const bg = screen && screen.fondoHex ? screen.fondoHex : '#101820';
+        document.documentElement.style.setProperty('--bg', bg);
+        document.documentElement.style.setProperty('--bg-soft', mixWithBlack(bg, 0.25));
       }
 
       function applyScreenTheme(screen) {
