@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CMS Cartelería</title>
+    <style>
+      :root {
+        --bg: #000000;
+        --fg: #ffffff;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        position: relative;
+      }
+
+      #app {
+        position: absolute;
+        inset: 0;
+        background: var(--bg);
+      }
+
+      .slide {
+        position: absolute;
+        inset: 0;
+        display: none;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+      }
+
+      .slide.is-visible {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .slide-html {
+        padding: 3vw;
+        color: #fff;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      .slide-html .content-wrap {
+        width: 100%;
+        height: 100%;
+      }
+
+      .slide-image img,
+      .slide-video video,
+      .slide-video iframe {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #000;
+        border: 0;
+      }
+
+      .placeholder,
+      .error-box,
+      .loading-box {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        text-align: center;
+        padding: 3rem;
+      }
+
+      .placeholder h1,
+      .error-box h1,
+      .loading-box h1 {
+        margin: 0 0 1rem;
+        font-size: 3rem;
+      }
+
+      .placeholder p,
+      .error-box p,
+      .loading-box p {
+        margin: 0.35rem 0;
+        font-size: 1.3rem;
+        opacity: 0.92;
+      }
+
+      #statusBar {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        z-index: 20;
+        font-size: 12px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(0,0,0,0.45);
+        color: rgba(255,255,255,0.85);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="loading-box" id="loadingBox">
+        <h1>Cartelería</h1>
+        <p>Iniciando pantalla…</p>
+      </div>
+    </div>
+    <div id="statusBar">Boot</div>
+
+    <script>
+      const BOOT = <?!= JSON.stringify(bootConfig || {}) ?>;
+      const appEl = document.getElementById('app');
+      const loadingBox = document.getElementById('loadingBox');
+      const statusBar = document.getElementById('statusBar');
+
+      let playlist = [];
+      let currentIndex = 0;
+      let rotationTimer = null;
+      let refreshTimer = null;
+      let activeVideo = null;
+      let lastRefreshSeg = 60;
+
+      init();
+
+      async function init() {
+        updateStatus('Cargando configuración');
+
+        if (!BOOT.apiBase || !BOOT.screen || !BOOT.token) {
+          renderMessage('Configuración incompleta', [
+            'Faltan parámetros screen o token en la URL.',
+            'Ejemplo: ?screen=ENTRADA_PRINCIPAL&token=demo-token-001'
+          ], 'error');
+          return;
+        }
+
+        await loadPlaylist();
+      }
+
+      async function loadPlaylist() {
+        clearTimers();
+        updateStatus('Solicitando playlist');
+
+        try {
+          const url = buildPlaylistUrl();
+          const response = await fetch(url, { cache: 'no-store' });
+          const data = await response.json();
+
+          if (!data.ok) {
+            renderMessage('No se pudo cargar la playlist', [data.error || 'Error desconocido'], 'error');
+            scheduleRefresh(30);
+            return;
+          }
+
+          playlist = Array.isArray(data.playlist) ? data.playlist : [];
+          currentIndex = 0;
+          lastRefreshSeg = Number(data.screen && data.screen.refreshSeg) || 60;
+          document.documentElement.style.setProperty('--bg', (data.screen && data.screen.fondoHex) || '#000000');
+
+          if (!playlist.length) {
+            renderMessage('Sin contenidos asignados', [
+              'La pantalla está activa, pero no tiene slides disponibles ahora mismo.'
+            ], 'placeholder');
+            scheduleRefresh(lastRefreshSeg);
+            return;
+          }
+
+          showSlide(currentIndex);
+          scheduleRefresh(lastRefreshSeg);
+        } catch (err) {
+          renderMessage('Error de red o parsing', [String(err && err.message || err)], 'error');
+          scheduleRefresh(30);
+        }
+      }
+
+      function buildPlaylistUrl() {
+        const url = new URL(BOOT.apiBase, window.location.href);
+        url.searchParams.set('api', 'playlist');
+        url.searchParams.set('screen', BOOT.screen);
+        url.searchParams.set('token', BOOT.token);
+        return url.toString();
+      }
+
+      function showSlide(index) {
+        clearRotationOnly();
+        stopActiveVideo();
+
+        const item = playlist[index];
+        if (!item) {
+          renderMessage('Slide no disponible', ['No existe el elemento solicitado.'], 'error');
+          scheduleNext(10);
+          return;
+        }
+
+        updateStatus('Mostrando ' + (item.title || item.id || ('slide ' + (index + 1))));
+        appEl.innerHTML = '';
+
+        const type = String(item.type || '').toUpperCase();
+        const slide = document.createElement('section');
+        slide.className = 'slide is-visible';
+
+        if (type === 'HTML') {
+          slide.classList.add('slide-html');
+          const wrap = document.createElement('div');
+          wrap.className = 'content-wrap';
+          wrap.innerHTML = item.textHtml || '<div class="placeholder"><h1>HTML vacío</h1></div>';
+          slide.appendChild(wrap);
+          appEl.appendChild(slide);
+          scheduleNext(item.durationSeg || 10);
+          return;
+        }
+
+        if (type === 'IMAGE') {
+          slide.classList.add('slide-image');
+          const img = document.createElement('img');
+          img.alt = item.title || 'Imagen';
+          img.src = item.url || '';
+          img.onerror = function() {
+            renderMessage('Imagen no disponible', [item.title || '', item.url || 'URL vacía'], 'error');
+            scheduleNext(item.durationSeg || 10);
+          };
+          img.onload = function() {
+            scheduleNext(item.durationSeg || 10);
+          };
+          slide.appendChild(img);
+          appEl.appendChild(slide);
+          return;
+        }
+
+        if (type === 'VIDEO') {
+          slide.classList.add('slide-video');
+          if (!item.url) {
+            renderMessage('Vídeo sin URL', [item.title || item.id || 'Contenido sin recurso'], 'error');
+            scheduleNext(item.durationSeg || 10);
+            return;
+          }
+
+          const video = document.createElement('video');
+          video.src = item.url;
+          video.autoplay = true;
+          video.muted = true;
+          video.playsInline = true;
+          video.controls = false;
+          activeVideo = video;
+
+          video.addEventListener('ended', function() {
+            nextSlide();
+          });
+          video.addEventListener('error', function() {
+            renderMessage('Vídeo no disponible', [item.title || '', item.url], 'error');
+            scheduleNext(item.durationSeg || 10);
+          });
+
+          slide.appendChild(video);
+          appEl.appendChild(slide);
+          if (item.durationSeg) {
+            scheduleNext(item.durationSeg);
+          }
+          return;
+        }
+
+        renderMessage('Tipo no soportado', [type || 'Sin tipo definido'], 'error');
+        scheduleNext(item.durationSeg || 10);
+      }
+
+      function nextSlide() {
+        if (!playlist.length) return;
+        currentIndex = (currentIndex + 1) % playlist.length;
+        showSlide(currentIndex);
+      }
+
+      function scheduleNext(seconds) {
+        clearRotationOnly();
+        rotationTimer = setTimeout(nextSlide, Math.max(1, Number(seconds) || 10) * 1000);
+      }
+
+      function scheduleRefresh(seconds) {
+        if (refreshTimer) clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(loadPlaylist, Math.max(10, Number(seconds) || 60) * 1000);
+      }
+
+      function clearRotationOnly() {
+        if (rotationTimer) {
+          clearTimeout(rotationTimer);
+          rotationTimer = null;
+        }
+      }
+
+      function clearTimers() {
+        clearRotationOnly();
+        if (refreshTimer) {
+          clearTimeout(refreshTimer);
+          refreshTimer = null;
+        }
+      }
+
+      function stopActiveVideo() {
+        if (activeVideo) {
+          try {
+            activeVideo.pause();
+            activeVideo.removeAttribute('src');
+            activeVideo.load();
+          } catch (err) {}
+        }
+        activeVideo = null;
+      }
+
+      function renderMessage(title, lines, kind) {
+        const cls = kind === 'error' ? 'error-box' : (kind === 'loading' ? 'loading-box' : 'placeholder');
+        const html = [
+          '<div class="' + cls + '">',
+          '<h1>' + escapeHtml(title || '') + '</h1>',
+          (lines || []).map(line => '<p>' + escapeHtml(line || '') + '</p>').join(''),
+          '</div>'
+        ].join('');
+        appEl.innerHTML = html;
+        updateStatus(title || 'Estado');
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function updateStatus(text) {
+        statusBar.textContent = text;
+      }
+    </script>
+  </body>
+</html>
