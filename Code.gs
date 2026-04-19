@@ -23,16 +23,39 @@ function doGet(e) {
     return jsonOutput_(getPlaylistResponse_(p));
   }
 
+  if (p.view === 'admin' || p.admin === '1') {
+    return renderAdmin_(p);
+  }
+
+  return renderScreen_(p);
+}
+
+function renderScreen_(params) {
   var template = HtmlService.createTemplateFromFile('screen');
   template.bootConfig = {
     apiBase: getScriptUrl_(),
-    screen: p.screen || '',
-    token: p.token || ''
+    screen: params.screen || '',
+    token: params.token || ''
   };
 
   return template
     .evaluate()
     .setTitle('CMS Cartelería')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+function renderAdmin_(params) {
+  var template = HtmlService.createTemplateFromFile('admin');
+  template.bootConfig = {
+    scriptUrl: getScriptUrl_(),
+    spreadsheetId: getSpreadsheetIdSafe_(),
+    spreadsheetUrl: getSpreadsheetUrlSafe_(),
+    mode: 'admin'
+  };
+
+  return template
+    .evaluate()
+    .setTitle('CMS Cartelería · Admin')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
@@ -114,6 +137,27 @@ function getPlaylistResponse_(params) {
   }
 }
 
+function getAdminDashboardData() {
+  var data = readCarteleriaData_();
+  return {
+    ok: true,
+    generatedAt: new Date().toISOString(),
+    spreadsheetId: getSpreadsheetIdSafe_(),
+    spreadsheetUrl: getSpreadsheetUrlSafe_(),
+    counts: {
+      pantallas: data.pantallas.length,
+      contenidos: data.contenidos.length,
+      asignaciones: data.asignaciones.length,
+      pantallasActivas: data.pantallas.filter(function(row) { return isYes_(row.ACTIVA); }).length,
+      contenidosActivos: data.contenidos.filter(function(row) { return isYes_(row.ACTIVO); }).length,
+      asignacionesActivas: data.asignaciones.filter(function(row) { return isYes_(row.ACTIVA); }).length
+    },
+    pantallas: data.pantallas,
+    contenidos: data.contenidos,
+    asignaciones: data.asignaciones
+  };
+}
+
 function buildPlaylist_(screen, contenidos, asignaciones) {
   var now = new Date();
 
@@ -193,6 +237,22 @@ function getConfigSpreadsheet_() {
     return SpreadsheetApp.getActiveSpreadsheet();
   } catch (err) {
     throw new Error('No se ha configurado CARTELERIA_SPREADSHEET_ID y no hay hoja activa disponible.');
+  }
+}
+
+function getSpreadsheetIdSafe_() {
+  try {
+    return getConfigSpreadsheet_().getId();
+  } catch (err) {
+    return '';
+  }
+}
+
+function getSpreadsheetUrlSafe_() {
+  try {
+    return getConfigSpreadsheet_().getUrl();
+  } catch (err) {
+    return '';
   }
 }
 
