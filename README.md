@@ -112,6 +112,24 @@ Notas de permisos:
 
 ## Criterio técnico
 
+Se mantiene intencionalmente simple para Apps Script:
+- sin pipeline frontend,
+- sin migraciones de stack,
+- despliegue directo y mantenible para un centro educativo.
+
+
+## Problema común: “Error de red o parsing / Failed to fetch”
+
+Si aparece en `screen.html`:
+
+1. Verifica que estás usando la **URL desplegada** de Web App (no la vista previa del editor).
+2. Revisa en Deploy que el acceso permita al dispositivo de pantalla consultar la app.
+3. Comprueba `screen` y `token` válidos.
+
+La pantalla intenta consultar la API por la URL configurada y también por la URL actual como fallback.
+Si la pantalla se queda en "Iniciando pantalla…", revisa conectividad del dispositivo: ahora hay timeout de red y el error se mostrará en pantalla automáticamente.
+Si el estado se queda en "Boot", normalmente es un navegador/dispositivo antiguo que no ejecuta bien JS moderno; esta versión de `screen.html` usa sintaxis ES5 para mejorar compatibilidad.
+
 ### Nueva para Drive (opcional)
 - `CARTELERIA_DRIVE_FOLDER_ID`: carpeta de Drive para listar recursos desde el panel admin.
 
