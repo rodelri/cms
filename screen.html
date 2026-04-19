@@ -107,6 +107,17 @@
         background: rgba(0,0,0,0.42);
       }
 
+      }
+
+      .media-foreground {
+        position: absolute;
+        inset: 2.5vw 2.5vw;
+        border-radius: 1.2vw;
+        overflow: hidden;
+        box-shadow: 0 14px 36px rgba(0,0,0,0.35);
+        background: rgba(0,0,0,0.42);
+      }
+
       .media-foreground img,
       .media-foreground video {
         width: 100%;
@@ -217,6 +228,7 @@
           const url = urls[i];
           try {
             const response = await fetchWithTimeout_(url, 12000);
+            const response = await fetch(url, { cache: 'no-store' });
             if (!response.ok) {
               throw new Error('HTTP ' + response.status + ' en ' + url);
             }
@@ -251,6 +263,9 @@
 
             showSlide(currentIndex);
             scheduleRefresh(lastRefreshSeg);
+          if (!data.ok) {
+            renderMessage('No se pudo cargar la playlist', [data.error || 'Error desconocido'], 'error');
+            scheduleRefresh(30);
             return;
           } catch (err) {
             lastError = err;
@@ -286,7 +301,35 @@
           throw err;
         } finally {
           clearTimeout(timer);
+          playlist = Array.isArray(data.playlist) ? data.playlist : [];
+          currentIndex = 0;
+          currentScreenInfo = data.screen || null;
+          lastRefreshSeg = Number(data.screen && data.screen.refreshSeg) || 60;
+          applyScreenTheme(data.screen || {});
+
+          if (!playlist.length) {
+            renderMessage('Sin contenidos asignados', [
+              'La pantalla está activa, pero no tiene slides disponibles ahora mismo.'
+            ], 'placeholder');
+            scheduleRefresh(lastRefreshSeg);
+            return;
+          } catch (err) {
+            lastError = err;
+          }
         }
+
+        renderMessage('Error de red o parsing', [
+          String(lastError && lastError.message || lastError),
+          'URL probadas: ' + urls.join(' | '),
+          'Revisa despliegue Web App y permisos de acceso.'
+        ], 'error');
+        scheduleRefresh(30);
+      }
+
+      function applyScreenTheme(screen) {
+        const bg = screen && screen.fondoHex ? screen.fondoHex : '#101820';
+        document.documentElement.style.setProperty('--bg', bg);
+        document.documentElement.style.setProperty('--bg-soft', mixWithBlack(bg, 0.25));
       }
 
       function applyScreenTheme(screen) {
@@ -310,6 +353,12 @@
         });
 
         return Object.keys(unique);
+      function buildPlaylistUrl() {
+        const url = new URL(BOOT.apiBase, window.location.href);
+        url.searchParams.set('api', 'playlist');
+        url.searchParams.set('screen', BOOT.screen);
+        url.searchParams.set('token', BOOT.token);
+        return url.toString();
       }
 
       function showSlide(index) {
