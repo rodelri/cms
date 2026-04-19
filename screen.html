@@ -107,6 +107,17 @@
         background: rgba(0,0,0,0.42);
       }
 
+      }
+
+      .media-foreground {
+        position: absolute;
+        inset: 2.5vw 2.5vw;
+        border-radius: 1.2vw;
+        overflow: hidden;
+        box-shadow: 0 14px 36px rgba(0,0,0,0.35);
+        background: rgba(0,0,0,0.42);
+      }
+
       .media-foreground img,
       .media-foreground video {
         width: 100%;
@@ -250,6 +261,22 @@
             }
 
             showSlide(currentIndex);
+          if (!data.ok) {
+            renderMessage('No se pudo cargar la playlist', [data.error || 'Error desconocido'], 'error');
+            scheduleRefresh(30);
+            return;
+          }
+
+          playlist = Array.isArray(data.playlist) ? data.playlist : [];
+          currentIndex = 0;
+          currentScreenInfo = data.screen || null;
+          lastRefreshSeg = Number(data.screen && data.screen.refreshSeg) || 60;
+          applyScreenTheme(data.screen || {});
+
+          if (!playlist.length) {
+            renderMessage('Sin contenidos asignados', [
+              'La pantalla está activa, pero no tiene slides disponibles ahora mismo.'
+            ], 'placeholder');
             scheduleRefresh(lastRefreshSeg);
             return;
           } catch (err) {
@@ -286,6 +313,12 @@
         });
 
         return Object.keys(unique);
+      function buildPlaylistUrl() {
+        const url = new URL(BOOT.apiBase, window.location.href);
+        url.searchParams.set('api', 'playlist');
+        url.searchParams.set('screen', BOOT.screen);
+        url.searchParams.set('token', BOOT.token);
+        return url.toString();
       }
 
       function showSlide(index) {
