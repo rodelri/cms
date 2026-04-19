@@ -1,11 +1,5 @@
-# Runtime Apps Script files en raíz
-# Incluye solo lo necesario y evita arrastrar archivos auxiliares.
-
+# Solo archivos runtime para Apps Script
 **/**
 !Code.gs
 !screen.html
 !appsscript.json
-!AGENTS.md
-!README.md
-!docs/**
-!
