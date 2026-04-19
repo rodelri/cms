@@ -1,62 +1,51 @@
 # CMS de cartelería digital para colegio
 
-Este repositorio está preparado para ser el **origen de verdad en GitHub** y sincronizarse **directamente con Google Apps Script**.
+Repositorio preparado como **origen de verdad en GitHub** para sincronización directa con **Google Apps Script**.
 
-## Enfoque
+## Principios
 
-- No se plantea una migración posterior.
-- El código Apps Script vive desde el principio en este repositorio.
-- La sincronización con Apps Script se hará desde GitHub mediante tu flujo habitual.
-- Los archivos del proyecto Apps Script están en la **raíz del repositorio** para maximizar compatibilidad con herramientas de sincronización.
+- Runtime Apps Script puro (sin React, sin TypeScript, sin bundlers).
+- Archivos runtime en raíz.
+- Google Sheets como almacenamiento funcional.
+- Google Drive como origen de imágenes y vídeos.
 
-## Objetivo funcional
-
-CMS de cartelería digital para un colegio con:
-
-- varias pantallas en distintas entradas o zonas
-- contenido distinto por pantalla o por grupos de pantallas
-- reproducción automática a pantalla completa
-- backend en Google Apps Script
-- Google Sheets como base de datos ligera
-- Google Drive para imágenes, vídeos y recursos
-- panel de administración dentro del propio Apps Script
-
-## Archivos clave del proyecto Apps Script
+## Archivos clave
 
 ### Runtime
-- `Code.gs` → backend principal
-- `screen.html` → frontend reproductor de pantalla
-- `admin.html` → primer panel de administración
-- `appsscript.json` → manifiesto del proyecto
-
-### Gobernanza del repo
-- `AGENTS.md` → instrucciones para Codex
-- `.clasp.json.example` → ejemplo si quieres usar `clasp` como respaldo
-- `.claspignore` → exclusiones para sincronización por `clasp`
+- `Code.gs` → backend Apps Script (API playlist + lógica admin + helpers Drive)
+- `screen.html` → vista pública de cartelería
+- `admin.html` → panel de administración con CRUD básico
+- `appsscript.json` → manifiesto Apps Script
 
 ### Documentación
-- `docs/arquitectura.md` → decisiones técnicas
-- `docs/codex-prompts.md` → prompts listos para pedirle trabajo a Codex
+- `README.md`
+- `docs/arquitectura.md`
+- `docs/codex-prompts.md`
 
-## Esqueleto funcional incluido
+## Funcionalidad actual
 
-Este repo ya incluye:
+### Vista pública
+- Endpoint `?api=playlist&screen=...&token=...`.
+- Validación de pantalla activa + token.
+- Rotación de slides `HTML`, `IMAGE`, `VIDEO`.
+- Refresco automático según `REFRESH_SEG`.
+- Presentación visual con cabecera, zona central y pie (estilo corporativo simple).
 
-- `doGet(e)` que sirve la pantalla HTML por defecto
-- vista admin con `?view=admin` o `?admin=1`
-- endpoint JSON `?api=playlist&screen=...&token=...`
-- lectura base de configuración desde Google Sheets
-- construcción de playlist por pantalla
-- validación de pantalla activa y token
-- soporte inicial para slides `HTML`, `IMAGE` y `VIDEO`
-- rotación automática en `screen.html`
-- refresco periódico de playlist
-- función `setupCarteleria()` para crear hojas base y datos demo
-- función `getAdminDashboardData()` para cargar resumen y tablas del panel
+### Panel admin (`?view=admin`)
+CRUD básico para:
+- `PANTALLAS`: listar, crear/editar, activar/desactivar.
+- `CONTENIDOS`: listar, crear/editar, activar/desactivar.
+- `ASIGNACIONES`: listar, crear/editar, activar/desactivar.
 
-## Modelo inicial previsto en Google Sheets
+Incluye:
+- validaciones básicas de campos obligatorios,
+- normalización de fechas,
+- edición desde tabla,
+- estado visual activo/inactivo.
 
-### PANTALLAS
+## Modelo de hojas
+
+### `PANTALLAS`
 - `ID_PANTALLA`
 - `NOMBRE`
 - `UBICACION`
@@ -65,9 +54,9 @@ Este repo ya incluye:
 - `REFRESH_SEG`
 - `FONDO_HEX`
 
-### CONTENIDOS
+### `CONTENIDOS`
 - `ID_CONTENIDO`
-- `TIPO`
+- `TIPO` (`HTML`, `IMAGE`, `VIDEO`)
 - `TITULO`
 - `TEXTO_HTML`
 - `FILE_ID`
@@ -75,7 +64,7 @@ Este repo ya incluye:
 - `DURACION_SEG`
 - `ACTIVO`
 
-### ASIGNACIONES
+### `ASIGNACIONES`
 - `ID_PANTALLA`
 - `ID_CONTENIDO`
 - `ORDEN`
@@ -83,40 +72,60 @@ Este repo ya incluye:
 - `HASTA`
 - `ACTIVA`
 
+## Configuración por Script Properties
+
+### Obligatoria/recomendada
+- `CARTELERIA_SPREADSHEET_ID` (recomendada): ID de la hoja de cálculo con datos del CMS.
+
+### Nueva para Drive (opcional)
+- `CARTELERIA_DRIVE_FOLDER_ID`: carpeta de Drive para listar recursos desde el panel admin.
+
+Si no se define la carpeta Drive:
+- el CMS sigue funcionando,
+- simplemente no se listan recursos en el bloque “Recursos de Google Drive”.
+
+## Gestión de recursos Drive
+
+El sistema mantiene compatibilidad con el modelo actual (`FILE_ID` o `URL`):
+
+1. Puedes guardar `URL` directa del recurso.
+2. Puedes guardar `FILE_ID` de Drive.
+3. Si pegas una URL de Drive en `FILE_ID`, backend intenta extraer y normalizar el ID.
+4. Para `IMAGE`/`VIDEO`, si `URL` está vacía y hay `FILE_ID`, se genera URL automáticamente.
+
+Notas de permisos:
+- Los dispositivos que reproducen cartelería deben tener acceso de lectura al archivo.
+- Si un archivo no es accesible, la pantalla mostrará error en ese slide y avanzará al siguiente.
+
 ## Puesta en marcha mínima
 
-1. Sincroniza el repo con tu proyecto de Google Apps Script.
-2. Configura `CARTELERIA_SPREADSHEET_ID` en Script Properties si vas a usar una hoja concreta.
-3. Ejecuta `setupCarteleria()` una vez para crear la estructura base.
-4. Despliega la web app.
-5. Abre una pantalla con una URL como:
+1. Sincroniza con tu proyecto de Apps Script.
+2. Configura `CARTELERIA_SPREADSHEET_ID`.
+3. (Opcional) Configura `CARTELERIA_DRIVE_FOLDER_ID`.
+4. Ejecuta `setupCarteleria()` una vez.
+5. Despliega la web app.
+6. Abre `?view=admin` para administrar datos.
+7. Abre una pantalla, por ejemplo:
 
 ```text
 ...?screen=ENTRADA_PRINCIPAL&token=demo-token-001
 ```
 
-6. Prueba el endpoint:
+## Criterio técnico
 
-```text
-...?api=playlist&screen=ENTRADA_PRINCIPAL&token=demo-token-001
-```
+Se mantiene intencionalmente simple para Apps Script:
+- sin pipeline frontend,
+- sin migraciones de stack,
+- despliegue directo y mantenible para un centro educativo.
 
-7. Abre el panel inicial de administración:
 
-```text
-...?view=admin
-```
+## Problema común: “Error de red o parsing / Failed to fetch”
 
-## Criterio técnico del repo
+Si aparece en `screen.html`:
 
-Este proyecto debe seguir siendo:
+1. Verifica que estás usando la **URL desplegada** de Web App (no la vista previa del editor).
+2. Revisa en Deploy que el acceso permita al dispositivo de pantalla consultar la app.
+3. Comprueba `screen` y `token` válidos.
 
-- Apps Script puro
-- simple de desplegar
-- simple de mantener
-- compatible con sincronización directa GitHub -> Apps Script
-- libre de toolchains frontend innecesarios
+La pantalla intenta consultar la API por la URL configurada y también por la URL actual como fallback.
 
-## Próximo paso natural
-
-Añadir CRUD simple sobre pantallas, contenidos y asignaciones dentro del panel admin.
