@@ -144,6 +144,7 @@
           <div class="field"><label>ID_PANTALLA</label><input name="ID_PANTALLA" required></div>
           <div class="field"><label>NOMBRE</label><input name="NOMBRE" required></div>
           <div class="field"><label>UBICACION</label><input name="UBICACION"></div>
+          <div class="field"><label>ID_GRUPO</label><input name="ID_GRUPO" placeholder="ENTRADAS"></div>
           <div class="field"><label>TOKEN</label><input name="TOKEN" required></div>
           <div class="field"><label>REFRESH_SEG</label><input name="REFRESH_SEG" type="number" min="5" value="60"></div>
           <div class="field"><label>FONDO_HEX</label><input name="FONDO_HEX" placeholder="#101820"></div>
@@ -181,6 +182,12 @@
         </div>
         <form id="asignacionForm" class="form-grid">
           <input type="hidden" name="_ROW">
+          <div class="field"><label>ID_PANTALLA</label><input name="ID_PANTALLA" placeholder="Solo para PANTALLA"></div>
+          <div class="field"><label>ID_CONTENIDO</label><input name="ID_CONTENIDO" required></div>
+          <div class="field"><label>ORDEN</label><input name="ORDEN" type="number" min="1" value="1"></div>
+          <div class="field"><label>ACTIVA</label><select name="ACTIVA"><option value="SI">SI</option><option value="NO">NO</option></select></div>
+          <div class="field"><label>TARGET_TIPO</label><select name="TARGET_TIPO"><option value="PANTALLA">PANTALLA</option><option value="GRUPO">GRUPO</option><option value="GLOBAL">GLOBAL</option></select></div>
+          <div class="field"><label>TARGET_ID</label><input name="TARGET_ID" placeholder="ID pantalla o grupo"></div>
           <div class="field"><label>ID_PANTALLA</label><input name="ID_PANTALLA" required></div>
           <div class="field"><label>ID_CONTENIDO</label><input name="ID_CONTENIDO" required></div>
           <div class="field"><label>ORDEN</label><input name="ORDEN" type="number" min="1" value="1"></div>
@@ -325,6 +332,7 @@
 
       function renderPantallas(rows) {
         document.getElementById('pantallasCountText').textContent = rows.length + ' filas';
+        const headers = ['ID_PANTALLA', 'NOMBRE', 'UBICACION', 'ID_GRUPO', 'TOKEN', 'ACTIVA', 'REFRESH_SEG', 'FONDO_HEX', 'ACCIONES'];
         const headers = ['ID_PANTALLA', 'NOMBRE', 'UBICACION', 'TOKEN', 'ACTIVA', 'REFRESH_SEG', 'FONDO_HEX', 'ACCIONES'];
         document.getElementById('pantallasHost').innerHTML = buildTable(rows, headers, function(row, key) {
           if (key === 'ACTIVA') return renderBadge(row[key]);
@@ -348,6 +356,7 @@
 
       function renderAsignaciones(rows) {
         document.getElementById('asignacionesCountText').textContent = rows.length + ' filas';
+        const headers = ['_ROW', 'TARGET_TIPO', 'TARGET_ID', 'ID_PANTALLA', 'ID_CONTENIDO', 'ORDEN', 'DESDE', 'HASTA', 'ACTIVA', 'ACCIONES'];
         const headers = ['_ROW', 'ID_PANTALLA', 'ID_CONTENIDO', 'ORDEN', 'DESDE', 'HASTA', 'ACTIVA', 'ACCIONES'];
         document.getElementById('asignacionesHost').innerHTML = buildTable(rows, headers, function(row, key) {
           if (key === 'ACTIVA') return renderBadge(row[key]);

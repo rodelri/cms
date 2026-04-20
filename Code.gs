@@ -70,7 +70,7 @@ function setupCarteleria() {
   var ss = getConfigSpreadsheet_();
 
   ensureSheet_(ss, SHEET_NAMES.PANTALLAS, [[
-    'ID_PANTALLA', 'NOMBRE', 'UBICACION', 'TOKEN', 'ACTIVA', 'REFRESH_SEG', 'FONDO_HEX'
+    'ID_PANTALLA', 'NOMBRE', 'UBICACION', 'ID_GRUPO', 'TOKEN', 'ACTIVA', 'REFRESH_SEG', 'FONDO_HEX'
   ]]);
 
   ensureSheet_(ss, SHEET_NAMES.CONTENIDOS, [[
@@ -78,8 +78,11 @@ function setupCarteleria() {
   ]]);
 
   ensureSheet_(ss, SHEET_NAMES.ASIGNACIONES, [[
-    'ID_PANTALLA', 'ID_CONTENIDO', 'ORDEN', 'DESDE', 'HASTA', 'ACTIVA'
+    'ID_PANTALLA', 'ID_CONTENIDO', 'ORDEN', 'DESDE', 'HASTA', 'ACTIVA', 'TARGET_TIPO', 'TARGET_ID'
   ]]);
+
+  ensureSheetColumns_(ss, SHEET_NAMES.PANTALLAS, ['ID_GRUPO']);
+  ensureSheetColumns_(ss, SHEET_NAMES.ASIGNACIONES, ['TARGET_TIPO', 'TARGET_ID']);
 
   seedDemoData_(ss);
 
@@ -174,6 +177,7 @@ function savePantallaAdmin(payload) {
     ID_PANTALLA: idPantalla,
     NOMBRE: nombre,
     UBICACION: trimSafe_(payload.UBICACION),
+    ID_GRUPO: trimSafe_(payload.ID_GRUPO),
     TOKEN: token,
     ACTIVA: normalizeYesNo_(payload.ACTIVA, true),
     REFRESH_SEG: toPositiveInt_(payload.REFRESH_SEG, DEFAULT_REFRESH_SEG),
@@ -217,12 +221,44 @@ function saveContenidoAdmin(payload) {
     throw new Error('Para IMAGE/VIDEO debes indicar URL o FILE_ID.');
   }
 
+  if ((tipo === 'IMAGE' || tipo === 'VIDEO') && cleaned.FILE_ID) {
+    validateDriveFileIdForType_(cleaned.FILE_ID, tipo);
+  }
+
   upsertByKey_(SHEET_NAMES.CONTENIDOS, 'ID_CONTENIDO', cleaned);
   return getAdminDashboardData();
 }
 
 function saveAsignacionAdmin(payload) {
   payload = payload || {};
+
+  var targetTipo = normalizeTargetTipo_(payload.TARGET_TIPO);
+  var targetId = trimSafe_(payload.TARGET_ID);
+  var idPantalla = trimSafe_(payload.ID_PANTALLA);
+  var idContenido = trimSafe_(payload.ID_CONTENIDO);
+
+  if (!idContenido) throw new Error('ID_CONTENIDO es obligatorio.');
+  validateContenidoExists_(idContenido);
+
+  if (!targetTipo) {
+    targetTipo = 'PANTALLA';
+  }
+
+  if (targetTipo === 'PANTALLA') {
+    var resolvedPantalla = targetId || idPantalla;
+    if (!resolvedPantalla) throw new Error('Para TARGET_TIPO=PANTALLA debes indicar ID_PANTALLA o TARGET_ID.');
+    validatePantallaExists_(resolvedPantalla);
+    idPantalla = resolvedPantalla;
+    targetId = resolvedPantalla;
+  } else if (targetTipo === 'GRUPO') {
+    if (!targetId) throw new Error('Para TARGET_TIPO=GRUPO debes indicar TARGET_ID (ID del grupo).');
+    idPantalla = '';
+  } else if (targetTipo === 'GLOBAL') {
+    targetId = '';
+    idPantalla = '';
+  } else {
+    throw new Error('TARGET_TIPO no válido. Usa PANTALLA, GRUPO o GLOBAL.');
+  }
   var idPantalla = trimSafe_(payload.ID_PANTALLA);
   var idContenido = trimSafe_(payload.ID_CONTENIDO);
 
@@ -238,6 +274,9 @@ function saveAsignacionAdmin(payload) {
     ORDEN: toPositiveInt_(payload.ORDEN, 1),
     DESDE: normalizeDateText_(payload.DESDE),
     HASTA: normalizeDateText_(payload.HASTA),
+    ACTIVA: normalizeYesNo_(payload.ACTIVA, true),
+    TARGET_TIPO: targetTipo,
+    TARGET_ID: targetId
     ACTIVA: normalizeYesNo_(payload.ACTIVA, true)
   };
 
@@ -322,17 +361,31 @@ function buildPlaylist_(screen, contenidos, asignaciones) {
 
   var activeAssignments = asignaciones
     .filter(function(row) {
-      return row.ID_PANTALLA === screen.ID_PANTALLA && isYes_(row.ACTIVA) && isCurrentAssignment_(row, now);
+      return isAssignmentTargetMatch_(row, screen) && isYes_(row.ACTIVA) && isCurrentAssignment_(row, now);
+    })
+    .map(function(row) {
+      row._SPEC = getAssignmentSpecificity_(row, screen);
+      return row;
     })
     .sort(function(a, b) {
+      if (b._SPEC !== a._SPEC) return b._SPEC - a._SPEC;
       return toPositiveInt_(a.ORDEN, 999999) - toPositiveInt_(b.ORDEN, 999999);
     });
+
+  var dedupAssignments = [];
+  var seenByContent = {};
+  activeAssignments.forEach(function(row) {
+    var cid = trimSafe_(row.ID_CONTENIDO);
+    if (!cid || seenByContent[cid]) return;
+    seenByContent[cid] = true;
+    dedupAssignments.push(row);
+  });
 
   var contentById = indexBy_(contenidos.filter(function(row) {
     return isYes_(row.ACTIVO);
   }), 'ID_CONTENIDO');
 
-  return activeAssignments
+  return dedupAssignments
     .map(function(assignment) {
       return contentById[assignment.ID_CONTENIDO];
     })
@@ -414,6 +467,37 @@ function isSupportedDriveMime_(mimeType) {
   return mimeType.indexOf('image/') === 0 || mimeType.indexOf('video/') === 0;
 }
 
+function validateDriveFileIdForType_(fileId, tipo) {
+  var id = trimSafe_(fileId);
+  if (!id) return;
+
+  var file;
+  try {
+    file = DriveApp.getFileById(id);
+  } catch (fileErr) {
+    var isFolder = false;
+    try {
+      DriveApp.getFolderById(id);
+      isFolder = true;
+    } catch (folderErr) {}
+
+    if (isFolder) {
+      throw new Error('El ID indicado corresponde a una carpeta de Drive, no a un archivo. Usa el FILE_ID de la imagen/vídeo.');
+    }
+
+    throw new Error('FILE_ID de Drive no válido o sin permisos de acceso para el script.');
+  }
+
+  var mime = trimSafe_(file.getMimeType()).toLowerCase();
+  if (tipo === 'IMAGE' && mime.indexOf('image/') !== 0) {
+    throw new Error('El FILE_ID no corresponde a una imagen. MIME detectado: ' + mime);
+  }
+
+  if (tipo === 'VIDEO' && mime.indexOf('video/') !== 0) {
+    throw new Error('El FILE_ID no corresponde a un vídeo. MIME detectado: ' + mime);
+  }
+}
+
 function validatePantallaExists_(idPantalla) {
   var ss = getConfigSpreadsheet_();
   var sh = ss.getSheetByName(SHEET_NAMES.PANTALLAS);
@@ -472,6 +556,20 @@ function upsertAsignacion_(payload, rowNumber) {
   var targetRow = parseInt(rowNumber, 10);
 
   if (isNaN(targetRow) || targetRow < 2) {
+    var idxTipo = headers.indexOf('TARGET_TIPO');
+    var idxTarget = headers.indexOf('TARGET_ID');
+    var idxPantalla = headers.indexOf('ID_PANTALLA');
+    var idxContenido = headers.indexOf('ID_CONTENIDO');
+
+    targetRow = -1;
+    for (var i = 1; i < values.length; i++) {
+      var sameContent = trimSafe_(values[i][idxContenido]) === trimSafe_(payload.ID_CONTENIDO);
+      var sameTipo = idxTipo === -1 || trimSafe_(values[i][idxTipo]) === trimSafe_(payload.TARGET_TIPO);
+      var sameTarget = idxTarget === -1
+        ? trimSafe_(values[i][idxPantalla]) === trimSafe_(payload.ID_PANTALLA)
+        : trimSafe_(values[i][idxTarget]) === trimSafe_(payload.TARGET_ID);
+
+      if (sameContent && sameTipo && sameTarget) {
     var idxPantalla = headers.indexOf('ID_PANTALLA');
     var idxContenido = headers.indexOf('ID_CONTENIDO');
     targetRow = -1;
@@ -611,8 +709,8 @@ function seedDemoData_(ss) {
   var asignaciones = ss.getSheetByName(SHEET_NAMES.ASIGNACIONES);
 
   if (pantallas.getLastRow() === 1) {
-    pantallas.getRange(2, 1, 1, 7).setValues([[
-      'ENTRADA_PRINCIPAL', 'Entrada principal', 'Hall', 'demo-token-001', 'SI', 30, '#101820'
+    pantallas.getRange(2, 1, 1, 8).setValues([[
+      'ENTRADA_PRINCIPAL', 'Entrada principal', 'Hall', 'ENTRADAS', 'demo-token-001', 'SI', 30, '#101820'
     ]]);
   }
 
@@ -625,9 +723,9 @@ function seedDemoData_(ss) {
   }
 
   if (asignaciones.getLastRow() === 1) {
-    asignaciones.getRange(2, 1, 2, 6).setValues([
-      ['ENTRADA_PRINCIPAL', 'C001', 1, '', '', 'SI'],
-      ['ENTRADA_PRINCIPAL', 'C002', 2, '', '', 'SI']
+    asignaciones.getRange(2, 1, 2, 8).setValues([
+      ['ENTRADA_PRINCIPAL', 'C001', 1, '', '', 'SI', 'PANTALLA', 'ENTRADA_PRINCIPAL'],
+      ['ENTRADA_PRINCIPAL', 'C002', 2, '', '', 'SI', 'PANTALLA', 'ENTRADA_PRINCIPAL']
     ]);
   }
 }
@@ -653,6 +751,68 @@ function parseDateLoose_(value) {
 
   var parsed = new Date(value);
   return isNaN(parsed) ? null : parsed;
+}
+
+function ensureSheetColumns_(ss, sheetName, requiredHeaders) {
+  var sh = ss.getSheetByName(sheetName);
+  if (!sh) return;
+
+  var lastCol = sh.getLastColumn();
+  if (lastCol <= 0) return;
+
+  var headers = sh.getRange(1, 1, 1, lastCol).getValues()[0].map(function(h) {
+    return trimSafe_(h);
+  });
+
+  requiredHeaders.forEach(function(header) {
+    if (headers.indexOf(header) !== -1) return;
+    sh.getRange(1, sh.getLastColumn() + 1).setValue(header);
+    headers.push(header);
+  });
+}
+
+function normalizeTargetTipo_(value) {
+  var text = trimSafe_(value).toUpperCase();
+  if (!text) return '';
+  if (text === 'PANTALLA' || text === 'GRUPO' || text === 'GLOBAL') return text;
+  return '';
+}
+
+function getScreenGroupId_(screen) {
+  return trimSafe_(screen.ID_GRUPO || screen.GRUPO_ID || screen.GRUPO);
+}
+
+function getAssignmentSpecificity_(assignment, screen) {
+  var tipo = normalizeTargetTipo_(assignment.TARGET_TIPO);
+  if (tipo === 'PANTALLA') return 3;
+  if (tipo === 'GRUPO') return 2;
+  if (tipo === 'GLOBAL') return 1;
+  return 3;
+}
+
+function isAssignmentTargetMatch_(assignment, screen) {
+  var tipo = normalizeTargetTipo_(assignment.TARGET_TIPO);
+  var targetId = trimSafe_(assignment.TARGET_ID);
+  var screenId = trimSafe_(screen.ID_PANTALLA);
+
+  if (!tipo) {
+    return trimSafe_(assignment.ID_PANTALLA) === screenId;
+  }
+
+  if (tipo === 'PANTALLA') {
+    return (targetId || trimSafe_(assignment.ID_PANTALLA)) === screenId;
+  }
+
+  if (tipo === 'GRUPO') {
+    var groupId = getScreenGroupId_(screen);
+    return !!groupId && targetId === groupId;
+  }
+
+  if (tipo === 'GLOBAL') {
+    return true;
+  }
+
+  return false;
 }
 
 function normalizeDateText_(value) {

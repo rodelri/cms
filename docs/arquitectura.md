@@ -64,6 +64,7 @@ Luego `buildPlaylist_()`:
 
 ### `PANTALLAS`
 - Alta/edición por `ID_PANTALLA`.
+- Soporte opcional de `ID_GRUPO` para asignación por grupos.
 - Validación de `ID_PANTALLA`, `NOMBRE`, `TOKEN`.
 - Normalización de `ACTIVA`, `REFRESH_SEG`, `FONDO_HEX`.
 - Activar/desactivar desde tabla.
@@ -75,6 +76,9 @@ Luego `buildPlaylist_()`:
 - Activar/desactivar desde tabla.
 
 ### `ASIGNACIONES`
+- Alta/edición por fila con alcance `PANTALLA`, `GRUPO` o `GLOBAL`.
+- Campos de alcance: `TARGET_TIPO`, `TARGET_ID`.
+- Validación de existencia de contenido y pantalla cuando el alcance es `PANTALLA`.
 - Alta/edición (por fila o pareja pantalla-contenido).
 - Validación de existencia de pantalla y contenido.
 - Normalización de fechas (`YYYY-MM-DD` cuando posible).
