@@ -259,6 +259,14 @@ function saveAsignacionAdmin(payload) {
   } else {
     throw new Error('TARGET_TIPO no válido. Usa PANTALLA, GRUPO o GLOBAL.');
   }
+  var idPantalla = trimSafe_(payload.ID_PANTALLA);
+  var idContenido = trimSafe_(payload.ID_CONTENIDO);
+
+  if (!idPantalla) throw new Error('ID_PANTALLA es obligatorio.');
+  if (!idContenido) throw new Error('ID_CONTENIDO es obligatorio.');
+
+  validatePantallaExists_(idPantalla);
+  validateContenidoExists_(idContenido);
 
   var cleaned = {
     ID_PANTALLA: idPantalla,
@@ -269,6 +277,7 @@ function saveAsignacionAdmin(payload) {
     ACTIVA: normalizeYesNo_(payload.ACTIVA, true),
     TARGET_TIPO: targetTipo,
     TARGET_ID: targetId
+    ACTIVA: normalizeYesNo_(payload.ACTIVA, true)
   };
 
   upsertAsignacion_(cleaned, payload._ROW);
@@ -561,6 +570,11 @@ function upsertAsignacion_(payload, rowNumber) {
         : trimSafe_(values[i][idxTarget]) === trimSafe_(payload.TARGET_ID);
 
       if (sameContent && sameTipo && sameTarget) {
+    var idxPantalla = headers.indexOf('ID_PANTALLA');
+    var idxContenido = headers.indexOf('ID_CONTENIDO');
+    targetRow = -1;
+    for (var i = 1; i < values.length; i++) {
+      if (trimSafe_(values[i][idxPantalla]) === payload.ID_PANTALLA && trimSafe_(values[i][idxContenido]) === payload.ID_CONTENIDO) {
         targetRow = i + 1;
         break;
       }

@@ -188,6 +188,10 @@
           <div class="field"><label>ACTIVA</label><select name="ACTIVA"><option value="SI">SI</option><option value="NO">NO</option></select></div>
           <div class="field"><label>TARGET_TIPO</label><select name="TARGET_TIPO"><option value="PANTALLA">PANTALLA</option><option value="GRUPO">GRUPO</option><option value="GLOBAL">GLOBAL</option></select></div>
           <div class="field"><label>TARGET_ID</label><input name="TARGET_ID" placeholder="ID pantalla o grupo"></div>
+          <div class="field"><label>ID_PANTALLA</label><input name="ID_PANTALLA" required></div>
+          <div class="field"><label>ID_CONTENIDO</label><input name="ID_CONTENIDO" required></div>
+          <div class="field"><label>ORDEN</label><input name="ORDEN" type="number" min="1" value="1"></div>
+          <div class="field"><label>ACTIVA</label><select name="ACTIVA"><option value="SI">SI</option><option value="NO">NO</option></select></div>
           <div class="field"><label>DESDE (YYYY-MM-DD)</label><input name="DESDE" placeholder="2026-09-01"></div>
           <div class="field"><label>HASTA (YYYY-MM-DD)</label><input name="HASTA" placeholder="2026-09-30"></div>
           <div class="field"><label>Acciones</label><div><button class="btn btn-muted" type="submit">Guardar asignación</button></div></div>
@@ -329,6 +333,7 @@
       function renderPantallas(rows) {
         document.getElementById('pantallasCountText').textContent = rows.length + ' filas';
         const headers = ['ID_PANTALLA', 'NOMBRE', 'UBICACION', 'ID_GRUPO', 'TOKEN', 'ACTIVA', 'REFRESH_SEG', 'FONDO_HEX', 'ACCIONES'];
+        const headers = ['ID_PANTALLA', 'NOMBRE', 'UBICACION', 'TOKEN', 'ACTIVA', 'REFRESH_SEG', 'FONDO_HEX', 'ACCIONES'];
         document.getElementById('pantallasHost').innerHTML = buildTable(rows, headers, function(row, key) {
           if (key === 'ACTIVA') return renderBadge(row[key]);
           if (key === 'TOKEN') return '<code>' + escapeHtml(valueOrDash(row[key])) + '</code>';
@@ -352,6 +357,7 @@
       function renderAsignaciones(rows) {
         document.getElementById('asignacionesCountText').textContent = rows.length + ' filas';
         const headers = ['_ROW', 'TARGET_TIPO', 'TARGET_ID', 'ID_PANTALLA', 'ID_CONTENIDO', 'ORDEN', 'DESDE', 'HASTA', 'ACTIVA', 'ACCIONES'];
+        const headers = ['_ROW', 'ID_PANTALLA', 'ID_CONTENIDO', 'ORDEN', 'DESDE', 'HASTA', 'ACTIVA', 'ACCIONES'];
         document.getElementById('asignacionesHost').innerHTML = buildTable(rows, headers, function(row, key) {
           if (key === 'ACTIVA') return renderBadge(row[key]);
           if (key === 'ACCIONES') return renderAsignacionActions(row);

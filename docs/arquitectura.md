@@ -79,6 +79,8 @@ Luego `buildPlaylist_()`:
 - Alta/edición por fila con alcance `PANTALLA`, `GRUPO` o `GLOBAL`.
 - Campos de alcance: `TARGET_TIPO`, `TARGET_ID`.
 - Validación de existencia de contenido y pantalla cuando el alcance es `PANTALLA`.
+- Alta/edición (por fila o pareja pantalla-contenido).
+- Validación de existencia de pantalla y contenido.
 - Normalización de fechas (`YYYY-MM-DD` cuando posible).
 - Activar/desactivar desde tabla.
 
